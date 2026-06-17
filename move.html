@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<title>Dashboard de contracargos PayWay</title>
+<link rel="icon" type="image/png" href="https://livepassargentina-ux.github.io/contracargos.lp/favico.png">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: #f5f5f0; color: #1a1a18; padding: 2rem; font-size: 14px; line-height: 1.5; }
+  .header-block { margin-bottom: 1.5rem; }
+  h1 { font-size: 20px; font-weight: 600; color: #1a1a18; margin-bottom: 4px; }
+  .byline { font-size: 12px; font-style: italic; color: #888; }
+  .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.8rem; }
+  .metric { background: #fff; border: 0.5px solid #d8d6ce; border-radius: 8px; padding: 14px 16px; }
+  .metric .label { font-size: 11px; color: #6b6b67; margin-bottom: 5px; }
+  .metric .val { font-size: 22px; font-weight: 600; color: #1a1a18; }
+  .metric .sub { font-size: 11px; color: #9a9994; margin-top: 3px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 1.2rem; }
+  .tab { padding: 7px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; border: 0.5px solid #c8c6be; background: #ebebeb; color: #4a4a47; cursor: pointer; transition: background 0.15s, color 0.15s; }
+  .tab:hover { background: #e0dfd8; color: #1a1a18; }
+  .tab.active { background: #185FA5; color: #fff; border-color: #185FA5; }
+  .legend { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 10px; font-size: 12px; color: #6b6b67; }
+  .legend span { display: flex; align-items: center; gap: 5px; }
+  .swatch { width: 10px; height: 10px; border-radius: 2px; display: inline-block; }
+  .table-wrap { overflow-x: auto; border-radius: 8px; border: 0.5px solid #d8d6ce; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { font-size: 11px; font-weight: 600; color: #6b6b67; text-align: left; padding: 8px 12px; border-bottom: 1px solid #d8d6ce; background: #f0efea; white-space: nowrap; }
+  tbody td { padding: 7px 12px; color: #1a1a18; }
+  tbody tr:nth-child(odd) td { background: #fff; }
+  tbody tr:nth-child(even) td { background: #f7f6f2; }
+  tbody tr:hover td { background: #ddeeff; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .pill { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .pill-visa   { background: #FDF3D0; color: #7A5C00; }
+  .pill-master { background: #D6F0E0; color: #1A6638; }
+  .bar-bg { background: #d8d6ce; border-radius: 2px; height: 6px; width: 90px; display: inline-block; vertical-align: middle; }
+  .bar-fill { height: 6px; border-radius: 2px; }
+  .pct-badge { display: inline-block; padding: 2px 7px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .pct-critical { background: #FCEAEA; color: #A32D2D; }
+  .pct-high     { background: #FDF0D6; color: #854F0B; }
+  .pct-mid      { background: #FDF8D6; color: #7A6500; }
+  .pct-low      { background: #EAF3DE; color: #3B6D11; }
+  .section-title { font-size: 11px; font-weight: 600; color: #6b6b67; text-transform: uppercase; letter-spacing:.06em; margin: 1.5rem 0 .75rem; }
+  .donut-wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; align-items: center; }
+  .chart-box { position: relative; height: 320px; }
+  .center-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); text-align: center; pointer-events: none; }
+  .center-label .c-val { font-size: 18px; font-weight: 600; color: #1a1a18; }
+  .center-label .c-sub { font-size: 11px; color: #6b6b67; }
+  .leg-row { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 0.5px solid #e8e6de; }
+  .leg-row:last-child { border-bottom: none; }
+  .leg-swatch { width: 12px; height: 12px; border-radius: 3px; flex-shrink: 0; }
+  .leg-name { font-size: 13px; color: #1a1a18; flex: 1; }
+  .insight-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 8px; margin-top: 1.2rem; }
+  .insight { background: #fff; border: 0.5px solid #d8d6ce; border-radius: 8px; padding: 10px 14px; border-left: 3px solid #E8B84B; }
+  .insight.warn { border-left-color: #E05C2A; }
+  .insight .i-label { font-size: 11px; color: #6b6b67; margin-bottom: 3px; }
+  .insight .i-val { font-size: 15px; font-weight: 600; color: #1a1a18; }
+  .insight .i-sub { font-size: 11px; color: #9a9994; margin-top: 2px; }
+  .hidden { display: none; }
+  #attribution, .attribution, [class*="attribution"], footer { display: none !important; }
+</style>
+</head>
+<body>
+
+<div class="header-block" style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem">
+  <div>
+    <h1 id="dashboard-title">Dashboard de contracargos PayWay</h1>
+    <p class="byline">Realizado por Alvaro Silva | Livepass &nbsp;·&nbsp; Última actualización: <span id="fecha-actualizacion"></span></p>
+  </div>
+  <img src="https://livepassargentina-ux.github.io/contracargos.lp/logolivepass.png" alt="Livepass" style="height:40px;object-fit:contain;flex-shrink:0">
+</div>
+
+<div class="metric-grid" id="metrics"></div>
+
+<div class="tabs">
+  <button class="tab active" onclick="showTab('eventos')">Por evento</button>
+  <button class="tab" onclick="showTab('companias')">Por compañía</button>
+  <button class="tab" onclick="showTab('grafico')">Gráfico</button>
+</div>
+
+<div id="tab-eventos">
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:12px;flex-wrap:wrap">
+    <div style="position:relative;flex:1;min-width:200px">
+      <input id="filtro-texto" type="text" placeholder="🔍  Buscar evento..." oninput="filtrarEventos()"
+        style="width:100%;padding:7px 12px;border:0.5px solid #c8c6be;border-radius:8px;font-size:13px;background:#fff;color:#1a1a18;outline:none">
+    </div>
+    <select id="filtro-comp" onchange="filtrarEventos()"
+      style="padding:7px 12px;border:0.5px solid #c8c6be;border-radius:8px;font-size:13px;background:#fff;color:#1a1a18;outline:none;cursor:pointer">
+      <option value="">Todas las compañías</option>
+    </select>
+    <button onclick="limpiarFiltros()"
+      style="padding:7px 14px;border:0.5px solid #c8c6be;border-radius:8px;font-size:13px;background:#ebebeb;color:#4a4a47;cursor:pointer">
+      Limpiar
+    </button>
+    <span id="filtro-count" style="font-size:12px;color:#9a9994"></span>
+  </div>
+  <div class="legend">
+    <span><i class="swatch" style="background:#E8B84B"></i>VISA</span>
+    <span><i class="swatch" style="background:#4AAE6B"></i>MASTER</span>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Evento</th><th>Compañía</th>
+        <th style="text-align:right">Tkts VISA</th>
+        <th style="text-align:right">Tkts MASTER</th>
+        <th style="text-align:right">Total tkts</th>
+        <th style="text-align:right">Contracargos</th>
+        <th style="text-align:right">Recaudación</th>
+        <th style="text-align:right">% Pérdida</th>
+      </tr></thead>
+      <tbody id="tbody-eventos"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="tab-companias" class="hidden">
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Compañía</th>
+        <th style="text-align:right">Reg. VISA</th><th style="text-align:right">Reg. MASTER</th>
+        <th style="text-align:right">Tkts VISA</th><th style="text-align:right">Tkts MASTER</th>
+        <th style="text-align:right">Monto VISA</th><th style="text-align:right">Monto MASTER</th>
+        <th style="text-align:right">Total</th><th></th>
+      </tr></thead>
+      <tbody id="tbody-companias"></tbody>
+    </table>
+  </div>
+</div>
+
+<div id="tab-grafico" class="hidden">
+  <p class="section-title">Monto por evento — Top 15</p>
+  <div class="legend">
+    <span><i class="swatch" style="background:#E8B84B"></i>VISA</span>
+    <span><i class="swatch" style="background:#4AAE6B"></i>MASTER</span>
+  </div>
+  <div style="position:relative;width:100%;height:520px"><canvas id="chartEventos"></canvas></div>
+
+  <p class="section-title" style="margin-top:2rem">% Pérdida por evento (top 15 por contracargo)</p>
+  <div style="position:relative;width:100%;height:420px"><canvas id="chartPerdida"></canvas></div>
+
+  <p class="section-title" style="margin-top:2rem">Distribución por compañía — anillo exterior VISA · interior MASTER</p>
+  <div class="donut-wrap">
+    <div>
+      <div class="chart-box">
+        <canvas id="donutChart"></canvas>
+        <div class="center-label"><div class="c-val" id="donut-center-val"></div><div class="c-sub">total</div></div>
+      </div>
+      <div class="legend" style="justify-content:center;margin-top:10px">
+        <span><i class="swatch" style="background:#B8842A;border-radius:50%"></i>Ext. = VISA</span>
+        <span><i class="swatch" style="background:#7ACFA0;border-radius:50%"></i>Int. = MASTER</span>
+      </div>
+    </div>
+    <div id="donut-legend"></div>
+  </div>
+
+  <p class="section-title" style="margin-top:2.5rem">Evolución mensual — Monto descontado y contracargos</p>
+  <div class="legend">
+    <span><i class="swatch" style="background:#E8B84B"></i>Monto VISA</span>
+    <span><i class="swatch" style="background:#4AAE6B"></i>Monto MASTER</span>
+    <span style="display:flex;align-items:center;gap:5px">
+      <svg width="20" height="12"><line x1="0" y1="6" x2="20" y2="6" stroke="#E05C2A" stroke-width="2.5" stroke-dasharray="4,3"/><circle cx="10" cy="6" r="3" fill="#E05C2A"/></svg>
+      Contracargos (eje der.)
+    </span>
+  </div>
+  <div style="position:relative;width:100%;height:340px"><canvas id="chartMensual"></canvas></div>
+
+  <div class="insight-grid" id="insights"></div>
+</div>
+
+<script>
+// ── DATOS ── reemplazar la siguiente línea en cada actualización ──────────────
+const DATA = {"fecha_actualizacion": "17/06/26", "totales": {"monto": 51862000.0, "tickets": 385, "registros": 171, "visa_monto": 49347000.0, "visa_tickets": 369, "visa_reg": 165, "master_monto": 2515000.0, "master_tickets": 16, "master_reg": 6}, "eventos": [{"show": "My Chemical Romance", "comp": "MOVE", "tvisa": 328, "tmaster": 13, "monto_visa": 45357000.0, "monto_master": 2230000.0, "recaudacion": 5041445000.0, "pct_perdida": 0.94}, {"show": "The Hives en Vorterix ", "comp": "MOVE", "tvisa": 41, "tmaster": 3, "monto_visa": 3990000.0, "monto_master": 285000.0, "recaudacion": 126165000.0, "pct_perdida": 3.39}], "companias": [{"name": "MOVE", "rVisa": 165, "rMaster": 6, "tVisa": 369, "tMaster": 16, "mVisa": 49347000.0, "mMaster": 2515000.0}], "mensual": [{"label": "Feb 26", "monto_visa": 26690000.0, "monto_master": 855000.0, "reg_visa": 89, "reg_master": 3}, {"label": "Mar 26", "monto_visa": 8870000.0, "monto_master": 1660000.0, "reg_visa": 40, "reg_master": 3}, {"label": "Abr 26", "monto_visa": 4175000.0, "monto_master": 0.0, "reg_visa": 11, "reg_master": 0}, {"label": "May 26", "monto_visa": 6572000.0, "monto_master": 0.0, "reg_visa": 20, "reg_master": 0}, {"label": "Jun 26", "monto_visa": 3040000.0, "monto_master": 0.0, "reg_visa": 5, "reg_master": 0}], "insights": {"mes_max_monto": {"label": "Feb 26", "total": 27545000.0, "regs": 92}, "mes_max_regs": {"label": "Feb 26", "total": 27545000.0, "regs": 92}, "mes_min_monto": {"label": "Jun 26", "total": 3040000.0, "regs": 5}}};
+// ─────────────────────────────────────────────────────────────────────────────
+
+const totalMonto = DATA.totales.monto;
+const paleta = [
+  {visa:'#B8842A', master:'#7ACFA0'},
+  {visa:'#5A3EA6', master:'#A99EE8'},
+  {visa:'#2E8B6A', master:'#80CEBB'},
+  {visa:'#A02B2B', master:'#E08080'},
+  {visa:'#B85C00', master:'#F0A968'},
+  {visa:'#6B6B20', master:'#BEBE68'},
+  {visa:'#2B6B8A', master:'#7BBDD4'},
+  {visa:'#7A3B7A', master:'#C490C4'},
+];
+
+// Fecha y título dinámicos
+document.getElementById('fecha-actualizacion').textContent = DATA.fecha_actualizacion;
+
+function fmtK(n){ return n>=1000000?'$'+(n/1000000).toFixed(2)+'M':n>=1000?'$'+Math.round(n/1000)+'k':'$'+Math.round(n); }
+function loc(n){ return Math.round(n).toLocaleString('es-AR'); }
+
+function pctBadge(p){
+  if(p===null||p===undefined) return '<span style="color:#bbb">—</span>';
+  let cls = p>=10?'pct-critical':p>=5?'pct-high':p>=2?'pct-mid':'pct-low';
+  return `<span class="pct-badge ${cls}">${p.toFixed(2)}%</span>`;
+}
+
+// Métricas
+const t = DATA.totales;
+document.getElementById('metrics').innerHTML = `
+  <div class="metric"><div class="label">Total descontado</div><div class="val">${fmtK(t.monto)}</div><div class="sub">${loc(t.registros)} registros</div></div>
+  <div class="metric"><div class="label">Total tickets</div><div class="val">${loc(t.tickets)}</div><div class="sub">promedio ${(t.tickets/t.registros).toFixed(1)} por registro</div></div>
+  <div class="metric"><div class="label">VISA</div><div class="val">${fmtK(t.visa_monto)}</div><div class="sub">${loc(t.visa_tickets)} tickets · ${t.visa_reg} reg.</div></div>
+  <div class="metric"><div class="label">MASTER</div><div class="val">${fmtK(t.master_monto)}</div><div class="sub">${loc(t.master_tickets)} tickets · ${t.master_reg} reg.</div></div>`;
+
+// Selector de compañías
+const compSel = document.getElementById('filtro-comp');
+const compsUnicas = [...new Set(DATA.eventos.map(e=>e.comp))].sort();
+compsUnicas.forEach(c => {
+  const opt = document.createElement('option');
+  opt.value = c; opt.textContent = c;
+  compSel.appendChild(opt);
+});
+
+// Tabla eventos
+function renderEventos(lista) {
+  const tbE = document.getElementById('tbody-eventos');
+  tbE.innerHTML = '';
+  lista.forEach(e => {
+    const total = e.monto_visa+e.monto_master, tt = e.tvisa+e.tmaster;
+    tbE.innerHTML += `<tr>
+      <td style="max-width:220px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis" title="${e.show}">${e.show}</td>
+      <td style="color:#6b6b67;font-size:12px">${e.comp}</td>
+      <td class="num"><span class="pill pill-visa">${loc(e.tvisa)}</span></td>
+      <td class="num"><span class="pill pill-master">${loc(e.tmaster)}</span></td>
+      <td class="num" style="font-weight:600">${loc(tt)}</td>
+      <td class="num">${fmtK(total)}</td>
+      <td class="num" style="color:#6b6b67">${e.recaudacion?fmtK(e.recaudacion):'—'}</td>
+      <td class="num">${pctBadge(e.pct_perdida)}</td>
+    </tr>`;
+  });
+  document.getElementById('filtro-count').textContent =
+    lista.length < DATA.eventos.length ? `${lista.length} de ${DATA.eventos.length} eventos` : `${DATA.eventos.length} eventos`;
+}
+
+function filtrarEventos() {
+  const texto = document.getElementById('filtro-texto').value.toLowerCase().trim();
+  const comp  = document.getElementById('filtro-comp').value;
+  const filtrado = DATA.eventos.filter(e => {
+    const matchTexto = !texto || e.show.toLowerCase().includes(texto);
+    const matchComp  = !comp  || e.comp === comp;
+    return matchTexto && matchComp;
+  });
+  renderEventos(filtrado);
+}
+
+function limpiarFiltros() {
+  document.getElementById('filtro-texto').value = '';
+  document.getElementById('filtro-comp').value = '';
+  renderEventos(DATA.eventos);
+}
+
+renderEventos(DATA.eventos);
+
+// Tabla compañías
+const tbC = document.getElementById('tbody-companias');
+const maxM = Math.max(...DATA.companias.map(c=>c.mVisa+c.mMaster));
+DATA.companias.forEach((c,i) => {
+  const total=c.mVisa+c.mMaster, pct=(total/totalMonto*100).toFixed(1);
+  tbC.innerHTML += `<tr>
+    <td style="font-weight:600">${c.name}</td>
+    <td class="num">${c.rVisa}</td><td class="num">${c.rMaster}</td>
+    <td class="num"><span class="pill pill-visa">${loc(c.tVisa)}</span></td>
+    <td class="num"><span class="pill pill-master">${loc(c.tMaster)}</span></td>
+    <td class="num" style="color:#7A5C00">${fmtK(c.mVisa)}</td>
+    <td class="num" style="color:#1A6638">${fmtK(c.mMaster)}</td>
+    <td class="num" style="font-weight:600">${fmtK(total)}</td>
+    <td><span class="bar-bg"><span class="bar-fill" style="width:${(total/maxM*100).toFixed(0)}%;background:#E8B84B;display:block"></span></span> <span style="font-size:11px;color:#9a9994;margin-left:4px">${pct}%</span></td>
+  </tr>`;
+});
+
+// Leyenda donut
+const legEl = document.getElementById('donut-legend');
+document.getElementById('donut-center-val').textContent = fmtK(totalMonto);
+DATA.companias.forEach((c,i) => {
+  const tot=c.mVisa+c.mMaster, pct=(tot/totalMonto*100).toFixed(1);
+  legEl.innerHTML += `<div class="leg-row">
+    <span class="leg-swatch" style="background:${paleta[i%paleta.length].visa}"></span>
+    <span class="leg-name">${c.name}</span>
+    <div style="text-align:right">
+      <div style="font-size:13px;font-weight:500">${fmtK(tot)}</div>
+      <div style="font-size:11px;color:#6b6b67">${pct}% · <span style="color:${paleta[i%paleta.length].visa}">V ${fmtK(c.mVisa)}</span> <span style="color:${paleta[i%paleta.length].master}">M ${fmtK(c.mMaster)}</span></div>
+    </div>
+  </div>`;
+});
+
+// Insights
+const ins = DATA.insights;
+document.getElementById('insights').innerHTML = `
+  <div class="insight warn"><div class="i-label">Mes más crítico en monto</div><div class="i-val">${ins.mes_max_monto.label}</div><div class="i-sub">${fmtK(ins.mes_max_monto.total)} · ${ins.mes_max_monto.regs} contracargos</div></div>
+  <div class="insight warn"><div class="i-label">Mes con más contracargos</div><div class="i-val">${ins.mes_max_regs.label}</div><div class="i-sub">${ins.mes_max_regs.regs} registros · ${fmtK(ins.mes_max_regs.total)}</div></div>
+  <div class="insight"><div class="i-label">Mes más tranquilo</div><div class="i-val">${ins.mes_min_monto.label}</div><div class="i-sub">${fmtK(ins.mes_min_monto.total)} · ${ins.mes_min_monto.regs} contracargos</div></div>`;
+
+function showTab(t){
+  ['eventos','companias','grafico'].forEach(id=>{
+    document.getElementById('tab-'+id).classList.toggle('hidden', id!==t);
+  });
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active',['eventos','companias','grafico'][i]===t);
+  });
+  if(t==='grafico') renderCharts();
+}
+
+let chartsRendered = false;
+function renderCharts(){
+  if(chartsRendered) return;
+  chartsRendered = true;
+
+  // Top 15 por monto
+  const top15 = DATA.eventos.slice(0,15);
+  new Chart(document.getElementById('chartEventos'),{
+    type:'bar',
+    data:{
+      labels:top15.map(e=>e.show.length>34?e.show.slice(0,34)+'…':e.show),
+      datasets:[
+        {label:'VISA',   data:top15.map(e=>e.monto_visa),   backgroundColor:'#E8B84B', borderWidth:0},
+        {label:'MASTER', data:top15.map(e=>e.monto_master), backgroundColor:'#4AAE6B', borderWidth:0},
+      ]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.dataset.label}: ${fmtK(c.raw)}`}}},
+      scales:{
+        x:{stacked:true,ticks:{callback:v=>fmtK(v)},grid:{color:'rgba(0,0,0,0.06)'}},
+        y:{stacked:true,ticks:{font:{size:11}}}
+      }
+    }
+  });
+
+  // % Pérdida top 15 (excluir >20%)
+  const perdida = DATA.eventos
+    .filter(e=>e.pct_perdida!==null && e.pct_perdida<=20)
+    .sort((a,b)=>(b.monto_visa+b.monto_master)-(a.monto_visa+a.monto_master))
+    .slice(0,15);
+  const perdidaColors = perdida.map(e=>e.pct_perdida>=5?'#E05C2A':e.pct_perdida>=2?'#E8B84B':'#4AAE6B');
+  new Chart(document.getElementById('chartPerdida'),{
+    type:'bar',
+    data:{
+      labels:perdida.map(e=>e.show.length>34?e.show.slice(0,34)+'…':e.show),
+      datasets:[{
+        label:'% Pérdida',
+        data:perdida.map(e=>e.pct_perdida),
+        backgroundColor:perdidaColors,
+        borderWidth:0,
+      }]
+    },
+    options:{
+      indexAxis:'y', responsive:true, maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:c=>`${c.label}: ${c.raw.toFixed(2)}%`}}
+      },
+      scales:{
+        x:{ticks:{callback:v=>v+'%'},grid:{color:'rgba(0,0,0,0.06)'}},
+        y:{ticks:{font:{size:11}}}
+      }
+    }
+  });
+
+  // Donut
+  new Chart(document.getElementById('donutChart'),{
+    type:'doughnut',
+    data:{
+      labels:DATA.companias.map(c=>c.name),
+      datasets:[
+        {label:'VISA',   data:DATA.companias.map(c=>c.mVisa),   backgroundColor:DATA.companias.map((_,i)=>paleta[i%paleta.length].visa),   borderColor:'#f5f5f0', borderWidth:2, weight:1.6},
+        {label:'MASTER', data:DATA.companias.map(c=>c.mMaster), backgroundColor:DATA.companias.map((_,i)=>paleta[i%paleta.length].master), borderColor:'#f5f5f0', borderWidth:2, weight:1}
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false, cutout:'48%',
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>{
+        const comp=DATA.companias[c.dataIndex];
+        const tarjeta=c.datasetIndex===0?'VISA':'MASTER';
+        const val=c.datasetIndex===0?comp.mVisa:comp.mMaster;
+        return `${comp.name} · ${tarjeta}: ${fmtK(val)} (${(val/totalMonto*100).toFixed(1)}%)`;
+      }}}}
+    }
+  });
+
+  // Mensual
+  const labels   = DATA.mensual.map(m=>m.label);
+  const mVisa    = DATA.mensual.map(m=>m.monto_visa);
+  const mMaster  = DATA.mensual.map(m=>m.monto_master);
+  const regTotal = DATA.mensual.map(m=>m.reg_visa+m.reg_master);
+  new Chart(document.getElementById('chartMensual'),{
+    type:'bar',
+    data:{
+      labels,
+      datasets:[
+        {type:'bar',  label:'Monto VISA',   data:mVisa,   backgroundColor:'#E8B84B', borderWidth:0, stack:'monto', yAxisID:'yMonto'},
+        {type:'bar',  label:'Monto MASTER', data:mMaster, backgroundColor:'#4AAE6B', borderWidth:0, stack:'monto', yAxisID:'yMonto'},
+        {type:'line', label:'Contracargos', data:regTotal,
+          borderColor:'#E05C2A', backgroundColor:'rgba(224,92,42,0.1)',
+          borderWidth:2.5, borderDash:[5,4],
+          pointRadius:5, pointBackgroundColor:'#E05C2A', pointBorderColor:'#fff', pointBorderWidth:2,
+          tension:0.35, fill:false, yAxisID:'yReg', order:0
+        },
+      ]
+    },
+    options:{
+      responsive:true, maintainAspectRatio:false,
+      interaction:{mode:'index',intersect:false},
+      plugins:{legend:{display:false},tooltip:{callbacks:{
+        label:c=>c.dataset.label==='Contracargos'?`Contracargos: ${c.raw}`:`${c.dataset.label}: ${fmtK(c.raw)}`,
+        afterBody:items=>[`Total monto: ${fmtK(mVisa[items[0].dataIndex]+mMaster[items[0].dataIndex])}`]
+      }}},
+      scales:{
+        x:{grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:12}}},
+        yMonto:{type:'linear',position:'left',stacked:true,ticks:{callback:v=>fmtK(v),font:{size:11}},grid:{color:'rgba(0,0,0,0.06)'},title:{display:true,text:'Monto descontado',font:{size:11},color:'#6b6b67'}},
+        yReg:{type:'linear',position:'right',ticks:{font:{size:11},stepSize:50},grid:{drawOnChartArea:false},title:{display:true,text:'Cantidad de contracargos',font:{size:11},color:'#E05C2A'},min:0}
+      }
+    }
+  });
+}
+</script>
+</body>
+</html>
