@@ -1,0 +1,312 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+.wrap { padding: 1.5rem 0; }
+.sec-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.75rem; }
+.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
+.g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
+.field { display: flex; flex-direction: column; gap: 4px; }
+.field label { font-size: 12px; color: var(--text-secondary); }
+.pw { position: relative; }
+.pw span.pre { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--text-muted); pointer-events: none; }
+.pw input { padding-left: 22px !important; }
+.sw { position: relative; }
+.sw span.suf { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--text-muted); pointer-events: none; }
+.sw input { padding-right: 24px !important; }
+hr.div { border: none; border-top: 0.5px solid var(--border); margin: 1.25rem 0; }
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
+.kpi { background: var(--surface-1); border-radius: var(--radius); padding: 0.875rem 1rem; }
+.kpi .lbl { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
+.kpi .val { font-size: 19px; font-weight: 500; color: var(--text-primary); line-height: 1.2; }
+.kpi .val.ac { color: var(--text-accent); }
+.kpi .val.ok { color: var(--text-success); }
+.kpi .val.wn { color: var(--text-warning); }
+.prog-wrap { margin-bottom: 1.5rem; }
+.prog-track { height: 8px; background: var(--surface-1); border-radius: 999px; overflow: hidden; }
+.prog-fill { height: 100%; border-radius: 999px; background: #2a78d6; transition: width 0.5s ease; }
+.prog-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--text-muted); }
+.tbl-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
+th { font-size: 11px; font-weight: 500; color: var(--text-muted); text-align: right; padding: 6px 8px; border-bottom: 0.5px solid var(--border-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+th:first-child { text-align: left; }
+td { text-align: right; padding: 6px 8px; border-bottom: 0.5px solid var(--border); color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+td:first-child { text-align: left; font-weight: 500; }
+tr.eq td { background: var(--bg-success); color: var(--text-success); font-weight: 500; }
+tr:not(.eq):hover td { background: var(--surface-1); }
+.badge-eq { display: inline-flex; align-items: center; gap: 3px; background: var(--bg-success); color: var(--text-success); font-size: 10px; padding: 1px 6px; border-radius: 999px; }
+.alert-box { background: var(--bg-warning); border: 0.5px solid var(--border-warning); border-radius: var(--radius); padding: 0.6rem 0.875rem; font-size: 13px; color: var(--text-warning); display: flex; gap: 8px; align-items: flex-start; margin-bottom: 1rem; }
+.chart-area { position: relative; width: 100%; height: 260px; margin-top: 0.75rem; }
+.season-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 1.25rem; }
+.sfield { display: flex; flex-direction: column; gap: 3px; align-items: center; }
+.sfield label { font-size: 11px; color: var(--text-muted); text-align: center; }
+.sfield input[type=number] { width: 100%; text-align: center; font-size: 13px; }
+.sfield .dot { width: 8px; height: 8px; border-radius: 50%; margin: 2px auto 0; }
+.legend-row { display: flex; gap: 16px; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary); flex-wrap: wrap; }
+.legend-row span { display: flex; align-items: center; gap: 4px; }
+.legend-row .sq { width: 10px; height: 10px; border-radius: 2px; }
+</style>
+
+<div class="wrap">
+<h2 class="sr-only">Calculadora de punto de equilibrio con variación estacional por mes</h2>
+
+<div class="sec-title">Adelanto al productor</div>
+<div class="g2" style="margin-bottom:1.25rem;">
+  <div class="field"><label>Monto del adelanto</label><div class="pw"><span class="pre">$</span><input type="text" id="adelanto" value="500.000" inputmode="numeric"></div></div>
+  <div class="field"><label>Fecha del primer evento</label><input type="month" id="fechaInicio" value="2025-07"></div>
+</div>
+
+<hr class="div">
+<div class="sec-title">Datos del evento</div>
+<div class="g4" style="margin-bottom:1.25rem;">
+  <div class="field"><label>Shows por mes</label><input type="number" id="showsMes" value="2" min="1"></div>
+  <div class="field"><label>Capacidad por show</label><input type="number" id="capacidad" value="1000" min="1"></div>
+  <div class="field"><label>% ocupación base</label><div class="sw"><span class="suf">%</span><input type="number" id="ocupacion" value="80" min="1" max="100"></div></div>
+  <div class="field"><label>Valor de la entrada</label><div class="pw"><span class="pre">$</span><input type="text" id="valorEntrada" value="5.000" inputmode="numeric"></div></div>
+</div>
+<div class="g3" style="margin-bottom:1.25rem;">
+  <div class="field"><label>% cargo de servicio</label><div class="sw"><span class="suf">%</span><input type="number" id="cargoServicio" value="10" min="0" max="100" step="0.5"></div></div>
+  <div class="field"><label>% que va al recupero</label><div class="sw"><span class="suf">%</span><input type="number" id="pctRecupero" value="100" min="1" max="100"></div></div>
+  <div class="field"><label>Meses a proyectar</label><input type="number" id="mesesProyectar" value="12" min="1" max="60"></div>
+</div>
+
+<hr class="div">
+<div class="sec-title">Variación de ocupación por mes del año</div>
+<p style="font-size:12px;color:var(--text-muted);margin-bottom:0.75rem;">Ajustá el % de ocupación para cada mes. El valor base de arriba se aplica donde dejés 100%.</p>
+<div class="season-grid" id="seasonGrid"></div>
+
+<hr class="div">
+<div id="kpis" class="kpi-row"></div>
+<div class="prog-wrap" id="progressWrap" style="display:none;">
+  <div class="sec-title">Progreso de recupero</div>
+  <div class="prog-track"><div class="prog-fill" id="progressFill" style="width:0%"></div></div>
+  <div class="prog-labels"><span id="progressLeft">$0 recuperado</span><span id="progressRight">$0 restante</span></div>
+</div>
+<div id="alertBox"></div>
+
+<hr class="div">
+<div class="sec-title">Proyección mes a mes</div>
+<div class="tbl-wrap">
+  <table id="tabla">
+    <colgroup>
+      <col style="width:13%"><col style="width:6%"><col style="width:8%"><col style="width:9%"><col style="width:10%"><col style="width:10%"><col style="width:11%"><col style="width:11%"><col style="width:10%"><col style="width:12%">
+    </colgroup>
+    <thead>
+      <tr>
+        <th style="text-align:left;">Mes</th>
+        <th>Fact. est.</th>
+        <th>Ocup. %</th>
+        <th>Entradas</th>
+        <th>Recaud. entradas</th>
+        <th>Cargo serv.</th>
+        <th>Total bruto</th>
+        <th>Aporte recupero</th>
+        <th>Saldo</th>
+      </tr>
+    </thead>
+    <tbody id="tablaBody"></tbody>
+  </table>
+</div>
+
+<hr class="div">
+<div class="sec-title">Acumulación del recupero</div>
+<div class="legend-row">
+  <span><span class="sq" style="background:#2a78d6;"></span>Recupero acumulado</span>
+  <span><span class="sq" style="background:#e34948;"></span>Adelanto total</span>
+</div>
+<div class="chart-area"><canvas id="chartCanvas" role="img" aria-label="Gráfico de acumulación del recupero mes a mes con variación estacional">Proyección del recupero del adelanto.</canvas></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const MESES_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+const COLORS_DOT = ['#e34948','#eb6834','#eda100','#1baf7a','#1baf7a','#2a78d6','#2a78d6','#2a78d6','#eb6834','#eda100','#e34948','#e34948'];
+let chartInstance = null;
+
+function buildSeasonGrid() {
+  const grid = document.getElementById('seasonGrid');
+  grid.innerHTML = '';
+  MESES_ES.forEach((m, i) => {
+    const d = document.createElement('div');
+    d.className = 'sfield';
+    d.innerHTML = `<label>${m}</label><div class="sw"><span class="suf">%</span><input type="number" id="s${i}" value="100" min="10" max="200" step="5" style="padding-right:26px!important;"></div><div class="dot" style="background:${COLORS_DOT[i]};"></div>`;
+    grid.appendChild(d);
+  });
+}
+
+function parseMoney(str) {
+  return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0;
+}
+function fmt(n) { return '$' + Math.round(n).toLocaleString('es-AR'); }
+function fmtN(n) { return Math.round(n).toLocaleString('es-AR'); }
+function getMonthLabel(base, offset) {
+  const d = new Date(base + '-01');
+  d.setMonth(d.getMonth() + offset);
+  return MESES_ES[d.getMonth()] + " '" + String(d.getFullYear()).slice(2);
+}
+function getMonthIndex(base, offset) {
+  const d = new Date(base + '-01');
+  d.setMonth(d.getMonth() + offset);
+  return d.getMonth();
+}
+
+function getSeasonFactors() {
+  return Array.from({length: 12}, (_, i) => {
+    const el = document.getElementById('s' + i);
+    return el ? (parseFloat(el.value) || 100) / 100 : 1;
+  });
+}
+
+function calcular() {
+  const adelanto = parseMoney(document.getElementById('adelanto').value);
+  const shows = parseInt(document.getElementById('showsMes').value) || 1;
+  const capacidad = parseInt(document.getElementById('capacidad').value) || 0;
+  const ocupBase = parseFloat(document.getElementById('ocupacion').value) / 100 || 0;
+  const valorEntrada = parseMoney(document.getElementById('valorEntrada').value);
+  const cargoPct = parseFloat(document.getElementById('cargoServicio').value) / 100 || 0;
+  const pctRecupero = parseFloat(document.getElementById('pctRecupero').value) / 100 || 1;
+  const meses = parseInt(document.getElementById('mesesProyectar').value) || 12;
+  const fechaBase = document.getElementById('fechaInicio').value || '2025-07';
+  const seasonFactors = getSeasonFactors();
+
+  let saldo = adelanto;
+  let mesEquilibrio = null;
+  const rows = [];
+  const labelsChart = [];
+  const dataAcum = [];
+  let totalRecuperado = 0;
+
+  for (let i = 0; i < meses; i++) {
+    const label = getMonthLabel(fechaBase, i);
+    const mIdx = getMonthIndex(fechaBase, i);
+    const factor = seasonFactors[mIdx];
+    const ocupMes = Math.min(1, ocupBase * factor);
+    const entradasMes = Math.round(capacidad * ocupMes) * shows;
+    const recaudEntradas = entradasMes * valorEntrada;
+    const recaudCargo = recaudEntradas * cargoPct;
+    const totalBruto = recaudEntradas + recaudCargo;
+    const aporteCalc = totalBruto * pctRecupero;
+    const saldoAntes = saldo;
+    const aporte = Math.min(aporteCalc, Math.max(0, saldo));
+    saldo = Math.max(0, saldo - aporteCalc);
+    const esEq = saldoAntes > 0 && saldo <= 0;
+    if (esEq && mesEquilibrio === null) mesEquilibrio = i;
+    totalRecuperado += aporte;
+    rows.push({ label, factor, ocupMes, entradasMes, recaudEntradas, recaudCargo, totalBruto, aporte, saldo, esEq });
+    labelsChart.push(label);
+    dataAcum.push(Math.round(Math.min(adelanto, totalRecuperado)));
+  }
+
+  const pctRecuperado = adelanto > 0 ? Math.min(100, (totalRecuperado / adelanto) * 100) : 0;
+
+  document.getElementById('progressWrap').style.display = adelanto > 0 ? 'block' : 'none';
+  document.getElementById('progressFill').style.width = pctRecuperado.toFixed(1) + '%';
+  document.getElementById('progressLeft').textContent = fmt(Math.min(adelanto, totalRecuperado)) + ' recuperado';
+  document.getElementById('progressRight').textContent = fmt(Math.max(0, adelanto - totalRecuperado)) + ' restante';
+
+  const avgAporte = rows.reduce((a, r) => a + r.aporte, 0) / rows.length;
+  document.getElementById('kpis').innerHTML = `
+    <div class="kpi"><div class="lbl">Adelanto total</div><div class="val">${fmt(adelanto)}</div></div>
+    <div class="kpi"><div class="lbl">Aporte mensual promedio</div><div class="val ac">${fmt(avgAporte)}</div></div>
+    <div class="kpi"><div class="lbl">Punto de equilibrio</div><div class="val ok">${mesEquilibrio !== null ? 'Mes ' + (mesEquilibrio + 1) + ' (' + rows[mesEquilibrio].label + ')' : 'No en ' + meses + ' meses'}</div></div>
+    <div class="kpi"><div class="lbl">Recuperado en ${meses} meses</div><div class="val ${pctRecuperado >= 100 ? 'ok' : 'wn'}">${pctRecuperado.toFixed(1)}%</div></div>
+  `;
+
+  const alertBox = document.getElementById('alertBox');
+  if (mesEquilibrio === null && adelanto > 0) {
+    alertBox.innerHTML = `<div class="alert-box"><i class="ti ti-alert-triangle" aria-hidden="true"></i>El adelanto no se recupera en los ${meses} meses proyectados con la estacionalidad definida.</div>`;
+  } else { alertBox.innerHTML = ''; }
+
+  document.getElementById('tablaBody').innerHTML = rows.map(r => `
+    <tr class="${r.esEq ? 'eq' : ''}">
+      <td>${r.label}${r.esEq ? ' <span class="badge-eq"><i class="ti ti-flag-2" style="font-size:10px" aria-hidden="true"></i>Equilibrio</span>' : ''}</td>
+      <td style="color:${r.factor > 1 ? 'var(--text-success)' : r.factor < 1 ? 'var(--text-warning)' : 'var(--text-muted)'};">${(r.factor * 100).toFixed(0)}%</td>
+      <td>${(r.ocupMes * 100).toFixed(0)}%</td>
+      <td>${fmtN(r.entradasMes)}</td>
+      <td>${fmt(r.recaudEntradas)}</td>
+      <td>${fmt(r.recaudCargo)}</td>
+      <td>${fmt(r.totalBruto)}</td>
+      <td>${fmt(r.aporte)}</td>
+      <td>${fmt(r.saldo)}</td>
+    </tr>
+  `).join('');
+
+  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  const ctx = document.getElementById('chartCanvas').getContext('2d');
+  const barColors = rows.map(r => r.esEq ? '#1baf7a' : 'rgba(42,120,214,0.7)');
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: labelsChart,
+      datasets: [
+        {
+          label: 'Recupero acumulado',
+          data: dataAcum,
+          backgroundColor: barColors,
+          borderWidth: 0,
+          borderRadius: 4,
+          borderSkipped: 'bottom',
+          order: 2
+        },
+        {
+          label: 'Adelanto total',
+          data: labelsChart.map(() => Math.round(adelanto)),
+          type: 'line',
+          borderColor: '#e34948',
+          borderWidth: 2,
+          borderDash: [4, 3],
+          pointRadius: 0,
+          fill: false,
+          tension: 0,
+          order: 1
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              if (ctx.dataset.type === 'line') return ' Adelanto: ' + fmt(ctx.raw);
+              return ' Recuperado: ' + fmt(ctx.raw) + (adelanto > 0 ? ' (' + ((ctx.raw / adelanto) * 100).toFixed(1) + '%)' : '');
+            }
+          }
+        }
+      },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#898781', autoSkip: true, maxRotation: 45 } },
+        y: {
+          grid: { color: 'rgba(180,180,170,0.2)', lineWidth: 1 },
+          ticks: { font: { size: 11 }, color: '#898781', callback: v => '$' + (v >= 1000000 ? (v/1000000).toFixed(1)+'M' : v >= 1000 ? (v/1000).toFixed(0)+'k' : v) }
+        }
+      }
+    }
+  });
+}
+
+function autoFmt(input) {
+  let raw = input.value.replace(/\D/g, '');
+  if (!raw) return;
+  input.value = parseInt(raw, 10).toLocaleString('es-AR');
+}
+
+buildSeasonGrid();
+
+['adelanto','valorEntrada'].forEach(id => {
+  const el = document.getElementById(id);
+  el.addEventListener('blur', () => autoFmt(el));
+  el.addEventListener('keydown', e => { if (e.key === 'Enter') { autoFmt(el); calcular(); } });
+});
+
+document.addEventListener('input', e => {
+  if (e.target && e.target.tagName === 'INPUT') calcular();
+});
+document.addEventListener('change', e => {
+  if (e.target && e.target.tagName === 'INPUT') calcular();
+});
+
+calcular();
+</script>
