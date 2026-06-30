@@ -43,7 +43,7 @@ body {
   padding: 32px 16px 64px;
 }
 
-.page { max-width: 960px; margin: 0 auto; }
+.page { max-width: 1280px; margin: 0 auto; }
 
 .page-header { margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
 .page-header-text { display: flex; flex-direction: column; gap: 2px; }
@@ -72,11 +72,25 @@ body {
 .proyecto-field input::placeholder { text-transform: none; font-weight: 400; color: var(--text3); }
 
 @media print {
-  body { background: #fff; padding: 0; }
-  .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+  @page { size: A4 portrait; margin: 10mm 8mm; }
+  body { background: #fff; padding: 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; margin-bottom: 10px; padding: 14px 16px; }
   .btn-print, .no-print { display: none !important; }
-  .page { max-width: 100%; }
+  .page { max-width: 100%; padding: 0; }
+  .tbl-scroll { overflow: visible; }
+  #tablaCard {
+    transform-origin: top left;
+    transform: scale(var(--tbl-scale, 1));
+    width: calc(100% / var(--tbl-scale, 1)) !important;
+    margin-bottom: calc(20px * var(--tbl-scale, 1)) !important;
+  }
+  table { font-size: 8px; width: 100%; }
+  th { padding: 4px 4px; font-size: 7.5px; }
+  td { padding: 3px 4px; font-size: 8px; }
   input[type="range"] { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .glosario-card { break-before: page; }
+  /* ocultar el running header del título del browser */
+  head title { display: none; }
 }
 
 .card {
@@ -258,17 +272,17 @@ input[readonly]:hover { background: var(--surface2); }
 
 /* ── Tabla ── */
 .tbl-scroll { overflow-x: auto; border-radius: var(--radius); }
-table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 700px; }
+table { width: 100%; border-collapse: collapse; font-size: 11px; min-width: 0; }
 thead tr { background: var(--surface2); }
 th {
-  font-size: 11px; font-weight: 600; color: var(--text3);
-  text-align: right; padding: 9px 12px;
+  font-size: 10px; font-weight: 600; color: var(--text3);
+  text-align: right; padding: 7px 7px;
   border-bottom: 2px solid var(--border-s);
-  text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap;
+  text-transform: uppercase; letter-spacing: 0.03em; white-space: nowrap;
 }
 th:first-child { text-align: left; }
 td {
-  text-align: right; padding: 9px 12px;
+  text-align: right; padding: 6px 7px;
   border-bottom: 1px solid var(--border);
   color: var(--text); white-space: nowrap;
 }
@@ -298,10 +312,39 @@ tbody tr.eq td {
 .legend span { display: flex; align-items: center; gap: 6px; }
 .legend .sq { width: 10px; height: 10px; border-radius: 3px; }
 .legend .ln { width: 18px; height: 0; border-top: 2px dashed; }
+
+/* ── Glosario ── */
+.glosario-card { margin-top: 4px; }
+.glosario-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+@media (max-width: 700px) { .glosario-grid { grid-template-columns: 1fr; } }
+.glosario-item {
+  display: flex; flex-direction: column; gap: 4px;
+  padding: 12px 14px; border-bottom: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+.glosario-item:nth-child(even) { border-right: none; }
+.glosario-item:nth-last-child(-n+2) { border-bottom: none; }
+.glosario-col {
+  font-size: 12px; font-weight: 600; color: var(--text);
+  display: flex; align-items: center; gap: 6px;
+}
+.glosario-desc { font-size: 12px; color: var(--text3); line-height: 1.5; }
+.glosario-eq .glosario-desc { color: var(--success); }
+@media print {
+  .glosario-card { break-before: page; }
+}
 </style>
 </head>
 <body>
 <div class="page">
+
+  <!-- NOMBRE PROYECTO -->
+  <div class="proyecto-field">
+    <div class="field">
+      <label>Nombre del proyecto</label>
+      <input type="text" id="nombreProyecto" placeholder="Ej: PROYECTO: CLUB RE" maxlength="80">
+    </div>
+  </div>
 
   <div class="page-header">
     <div class="page-header-text">
@@ -311,6 +354,12 @@ tbody tr.eq td {
     </div>
     <div class="page-header-logo">
       <img src="data:image/png;base64,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oaYTUY1Y7r///qwaRBUwB5o0BuH58+cL2iGGGImowArYYsBX8pfrddadCCyDm4okbHQQW+z32msvqVu3rm1063ivvfaa9QtXp04d2X///X3zbty4sa+/n+eGDRvk66+/9gsqmJ8Ojg60rIIVEJDxL37xi4CQzd7QArN9qTfnEP0XBP7ll1/K888/L4MGDZKL1HwRnSo8BuzDav+VjRs3hkdMCoUcUFCSvLK+HT16NLRYefTRR2XlypWCvLPOLCkhiBuDCkhS62dN2voeOSeddJJzww03uJo0FJWkbLO+hTxvv/22O4vRAdJanqwLzFPCiiPs999/34lD2D/72c/k4IMPNnnCM5GNdrTEfdQNCPuAAw7wjdaiRQtffz9PEPaqVav8ggrmBy0Wmn3BCvDJ2BgjBx54oE/IFi9Mh7/99tstHgW8A6kBBzWP5KyxjVOzA6bwluImomFwUq0/J+KBKRHmBgx26EuJzPN4A7MJZiQ2Wapm7/Tq1UtmzJjhatT5nC155UPBgQkvV+y8/Ap9rTjCxtR86dKl1rhBw7aOHCOiLgJZx95mm22kUaNGvvGbN2/u6+/niZesKgi72Br27rvvLrvssosfBAk/EDZILOFRhBtobdC0oTRkUxx2XeiMRdCOcdOjrrAfx03nxX/hhRecv/3tb7J69WrPq2BXKFQ6uEUOLpBHiTTWbCMboYEd1gqySVvsNBVH2PqyCF4cGyBhN4aGbRM3bhzYyWzTbLfddtKyZUtfLV+1f9ts3I5dbMKGdv3NN99Yy5iPiHvvvXegzd/LHwthccwKXrpcr5iyq100q2zUvisfffRRVmlBOhikskqsiaDJrtWFRL21/of1H2N8u21oHljLmDx5cmgcXXR1dJExNE56INai4IyJJxP6yauvvio6WEYOIullFvu54ggbdilbEGG7LgRhY4XdljjR6X/+858Higwih8kkMEJSADQzTPGSvAp+my3BZCOYl2afffaRHXfc0XvMuKo5yl1wzAgoksf06dNjlzR+/HgH2iTMK7ETawIQdrYaNrTd119/XXOJ/gflolmzZnL00UfL8ccfL7///e/lN7/5jey3337Wi/cwbWBWhu2gfiWCOLFTxy8s3W+rrbZy13/atm0rnTt3lpNPPlnatWsnjXXtp3bt2unRA59hPlPbemB4qQRUHGFji48tuLvttpvspYuO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" alt="Livepass">
+      <button class="btn-print no-print" onclick="exportarPDF()">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M12 16v-8m0 8-3-3m3 3 3-3M3 17v2a2 2 0 002 2h14a2 2 0 002-2v-2"/>
+        </svg>
+        Descargar PDF
+      </button>
     </div>
   </div>
 
@@ -434,23 +483,23 @@ tbody tr.eq td {
   </div>
 
   <!-- TABLA -->
-  <div class="card">
+  <div class="card" id="tablaCard">
     <div class="sec-label">Proyección mes a mes</div>
-    <div class="tbl-scroll">
+    <div class="tbl-scroll" id="tablaScroll">
       <table>
         <thead>
           <tr>
-            <th style="text-align:left;">Mes</th>
-            <th>Factor est.</th>
-            <th>Ocup. %</th>
-            <th>Entradas</th>
-            <th>Recaud. entradas</th>
-            <th>Cargo serv. total</th>
-            <th>Parte Livepass</th>
-            <th>Parte productor</th>
-            <th>Aporte al recupero</th>
-            <th>Recuperado acum.</th>
-            <th>Saldo restante</th>
+            <th style="text-align:left;width:100px;">Mes</th>
+            <th style="width:68px;">Factor est.</th>
+            <th style="width:58px;">Ocup.%</th>
+            <th style="width:72px;">Entradas</th>
+            <th style="width:108px;">Recaud. entradas</th>
+            <th style="width:100px;">Cargo serv.</th>
+            <th style="width:96px;">Parte LP</th>
+            <th style="width:90px;">Parte prod.</th>
+            <th style="width:98px;">Aporte recup.</th>
+            <th style="width:98px;">Recup. acum.</th>
+            <th style="width:98px;">Saldo rest.</th>
           </tr>
         </thead>
         <tbody id="tablaBody"></tbody>
@@ -466,6 +515,61 @@ tbody tr.eq td {
       <span><span class="ln" style="border-color:#E34848;"></span>Adelanto total</span>
     </div>
     <div class="chart-wrap"><canvas id="chartCanvas"></canvas></div>
+  </div>
+
+  <!-- GLOSARIO -->
+  <div class="card glosario-card">
+    <div class="sec-label">Guía de referencia — cómo leer la tabla</div>
+    <div class="glosario-grid">
+      <div class="glosario-item">
+        <span class="glosario-col">Mes</span>
+        <span class="glosario-desc">Período proyectado. Arranca en la fecha del primer evento y avanza mes a mes.</span>
+      </div>
+      <div class="glosario-item">
+        <span class="glosario-col">Factor est.</span>
+        <span class="glosario-desc">Factor de estacionalidad aplicado ese mes (según los sliders). 100% = sin ajuste, &gt;100% = temporada alta, &lt;100% = temporada baja.</span>
+      </div>
+      <div class="glosario-item">
+        <span class="glosario-col">Ocup. %</span>
+        <span class="glosario-desc">Ocupación efectiva del venue ese mes = % ocupación base × factor estacional.</span>
+      </div>
+      <div class="glosario-item">
+        <span class="glosario-col">Entradas vendidas</span>
+        <span class="glosario-desc">Cantidad total de entradas vendidas en el mes = capacidad × ocupación efectiva × shows por mes.</span>
+      </div>
+      <div class="glosario-item">
+        <span class="glosario-col">Recaud. entradas</span>
+        <span class="glosario-desc">Dinero generado por la venta de entradas, sin incluir el cargo de servicio = entradas vendidas × valor de la entrada.</span>
+      </div>
+      <div class="glosario-item">
+        <span class="glosario-col">Cargo serv. total</span>
+        <span class="glosario-desc">Total recaudado en concepto de cargo de servicio ese mes = entradas vendidas × (valor entrada × % cargo de servicio). Es un monto adicional y separado del valor de la entrada.</span>
+      </div>
+      <div class="glosario-item">
+        <span class="glosario-col">Parte Livepass</span>
+        <span class="glosario-desc">Porción del cargo de servicio que retiene Livepass = cargo total × % Livepass. Este es el origen del recupero cuando la fuente está seteada en "Livepass".</span>
+      </div>
+      <div class="glosario-item">
+        <span class="glosario-col">Parte productor</span>
+        <span class="glosario-desc">Porción del cargo de servicio que se devuelve al productor como rebate = cargo total × % rebate productor.</span>
+      </div>
+      <div class="glosario-item">
+        <span class="glosario-col">Aporte al recupero</span>
+        <span class="glosario-desc">Monto efectivamente aplicado al recupero del adelanto ese mes, según la fuente seleccionada (Livepass, Productor o Ambos). Una vez que el adelanto está saldado, este valor queda en cero.</span>
+      </div>
+      <div class="glosario-item">
+        <span class="glosario-col">Recuperado acum.</span>
+        <span class="glosario-desc">Total acumulado recuperado del adelanto hasta ese mes inclusive. Cuando llega al monto del adelanto original, el recupero está completo.</span>
+      </div>
+      <div class="glosario-item">
+        <span class="glosario-col">Saldo restante</span>
+        <span class="glosario-desc">Deuda pendiente del adelanto después de aplicar el aporte de ese mes = saldo anterior − aporte al recupero. Llega a $0 en el mes del punto de equilibrio.</span>
+      </div>
+      <div class="glosario-item glosario-eq">
+        <span class="glosario-col">Fila verde <span class="badge-eq" style="font-size:10px;padding:1px 6px;">EQUILIBRIO</span></span>
+        <span class="glosario-desc">Marca el mes exacto en que el adelanto queda completamente recuperado (punto de equilibrio financiero).</span>
+      </div>
+    </div>
   </div>
 
 </div>
@@ -722,6 +826,52 @@ document.addEventListener('change', e => {
 
 updateReparto();
 calcular();
+function exportarPDF() {
+  // 1. Forzar re-render del gráfico y capturar como imagen
+  if (chart) chart.update('none'); // 'none' = sin animación, render inmediato
+
+  const canvas = document.getElementById('chartCanvas');
+
+  function doExport() {
+    const imgData = canvas.toDataURL('image/png', 1.0);
+    const img = document.createElement('img');
+    img.id = 'chartImgPrint';
+    img.src = imgData;
+    img.style.cssText = 'width:100%;height:280px;object-fit:contain;display:block;';
+    canvas.style.display = 'none';
+    canvas.parentNode.insertBefore(img, canvas);
+
+    // 2. Escalar solo la card de proyección para que entre en A4 portrait
+    const A4_W_PX = 733;
+    const tablaCard = document.getElementById('tablaCard');
+    const tabla = tablaCard ? tablaCard.querySelector('table') : null;
+    let scale = 1;
+    if (tabla) {
+      const naturalW = tabla.scrollWidth;
+      if (naturalW > A4_W_PX) scale = A4_W_PX / naturalW;
+    }
+    if (tablaCard) tablaCard.style.setProperty('--tbl-scale', scale.toFixed(4));
+
+    // 3. Título del PDF
+    const nombre = document.getElementById('nombreProyecto').value.trim();
+    const originalTitle = document.title;
+    document.title = nombre || 'Recupero de Adelanto — Livepass';
+
+    // 4. Pequeño delay para que el browser pinte la img antes de abrir el diálogo
+    setTimeout(() => {
+      window.print();
+
+      // 5. Restaurar todo
+      document.title = originalTitle;
+      if (tablaCard) tablaCard.style.removeProperty('--tbl-scale');
+      canvas.style.display = 'block';
+      img.remove();
+    }, 300);
+  }
+
+  // Dar un tick al browser para que Chart.js termine el update antes de capturar
+  setTimeout(doExport, 100);
+}
 </script>
 </body>
 </html>
