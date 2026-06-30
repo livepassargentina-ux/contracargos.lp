@@ -1,286 +1,687 @@
-
-<style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-.wrap { padding: 1.5rem 0; }
-.sec-title { font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); margin-bottom: 0.75rem; }
-.g2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.g3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-.g4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 12px; }
-.field { display: flex; flex-direction: column; gap: 4px; }
-.field label { font-size: 12px; color: var(--text-secondary); }
-.pw { position: relative; }
-.pw span.pre { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--text-muted); pointer-events: none; }
-.pw input { padding-left: 22px !important; }
-.sw { position: relative; }
-.sw span.suf { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 13px; color: var(--text-muted); pointer-events: none; }
-.sw input { padding-right: 24px !important; }
-hr.div { border: none; border-top: 0.5px solid var(--border); margin: 1.25rem 0; }
-.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-bottom: 1.5rem; }
-.kpi { background: var(--surface-1); border-radius: var(--radius); padding: 0.875rem 1rem; }
-.kpi .lbl { font-size: 11px; color: var(--text-muted); margin-bottom: 4px; }
-.kpi .val { font-size: 19px; font-weight: 500; color: var(--text-primary); line-height: 1.2; }
-.kpi .val.ac { color: var(--text-accent); }
-.kpi .val.ok { color: var(--text-success); }
-.kpi .val.wn { color: var(--text-warning); }
-.prog-wrap { margin-bottom: 1.5rem; }
-.prog-track { height: 8px; background: var(--surface-1); border-radius: 999px; overflow: hidden; }
-.prog-fill { height: 100%; border-radius: 999px; background: #2a78d6; transition: width 0.5s ease; }
-.prog-labels { display: flex; justify-content: space-between; margin-top: 6px; font-size: 11px; color: var(--text-muted); }
-.tbl-wrap { overflow-x: auto; }
-table { width: 100%; border-collapse: collapse; font-size: 12px; table-layout: fixed; }
-th { font-size: 11px; font-weight: 500; color: var(--text-muted); text-align: right; padding: 6px 8px; border-bottom: 0.5px solid var(--border-strong); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-th:first-child { text-align: left; }
-td { text-align: right; padding: 6px 8px; border-bottom: 0.5px solid var(--border); color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-td:first-child { text-align: left; font-weight: 500; }
-tr.eq td { background: var(--bg-success); color: var(--text-success); font-weight: 500; }
-tr:not(.eq):hover td { background: var(--surface-1); }
-.badge-eq { display: inline-flex; align-items: center; gap: 3px; background: var(--bg-success); color: var(--text-success); font-size: 10px; padding: 1px 6px; border-radius: 999px; }
-.alert-box { background: var(--bg-warning); border: 0.5px solid var(--border-warning); border-radius: var(--radius); padding: 0.6rem 0.875rem; font-size: 13px; color: var(--text-warning); display: flex; gap: 8px; align-items: flex-start; margin-bottom: 1rem; }
-.chart-area { position: relative; width: 100%; height: 260px; margin-top: 0.75rem; }
-.season-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-bottom: 1.25rem; }
-.sfield { display: flex; flex-direction: column; gap: 3px; align-items: center; }
-.sfield label { font-size: 11px; color: var(--text-muted); text-align: center; }
-.sfield input[type=number] { width: 100%; text-align: center; font-size: 13px; }
-.sfield .dot { width: 8px; height: 8px; border-radius: 50%; margin: 2px auto 0; }
-.legend-row { display: flex; gap: 16px; margin-bottom: 8px; font-size: 12px; color: var(--text-secondary); flex-wrap: wrap; }
-.legend-row span { display: flex; align-items: center; gap: 4px; }
-.legend-row .sq { width: 10px; height: 10px; border-radius: 2px; }
-</style>
-
-<div class="wrap">
-<h2 class="sr-only">Calculadora de punto de equilibrio con variación estacional por mes</h2>
-
-<div class="sec-title">Adelanto al productor</div>
-<div class="g2" style="margin-bottom:1.25rem;">
-  <div class="field"><label>Monto del adelanto</label><div class="pw"><span class="pre">$</span><input type="text" id="adelanto" value="500.000" inputmode="numeric"></div></div>
-  <div class="field"><label>Fecha del primer evento</label><input type="month" id="fechaInicio" value="2025-07"></div>
-</div>
-
-<hr class="div">
-<div class="sec-title">Datos del evento</div>
-<div class="g4" style="margin-bottom:1.25rem;">
-  <div class="field"><label>Shows por mes</label><input type="number" id="showsMes" value="2" min="1"></div>
-  <div class="field"><label>Capacidad por show</label><input type="number" id="capacidad" value="1000" min="1"></div>
-  <div class="field"><label>% ocupación base</label><div class="sw"><span class="suf">%</span><input type="number" id="ocupacion" value="80" min="1" max="100"></div></div>
-  <div class="field"><label>Valor de la entrada</label><div class="pw"><span class="pre">$</span><input type="text" id="valorEntrada" value="5.000" inputmode="numeric"></div></div>
-</div>
-<div class="g3" style="margin-bottom:1.25rem;">
-  <div class="field"><label>% cargo de servicio</label><div class="sw"><span class="suf">%</span><input type="number" id="cargoServicio" value="10" min="0" max="100" step="0.5"></div></div>
-  <div class="field"><label>% que va al recupero</label><div class="sw"><span class="suf">%</span><input type="number" id="pctRecupero" value="100" min="1" max="100"></div></div>
-  <div class="field"><label>Meses a proyectar</label><input type="number" id="mesesProyectar" value="12" min="1" max="60"></div>
-</div>
-
-<hr class="div">
-<div class="sec-title">Variación de ocupación por mes del año</div>
-<p style="font-size:12px;color:var(--text-muted);margin-bottom:0.75rem;">Ajustá el % de ocupación para cada mes. El valor base de arriba se aplica donde dejés 100%.</p>
-<div class="season-grid" id="seasonGrid"></div>
-
-<hr class="div">
-<div id="kpis" class="kpi-row"></div>
-<div class="prog-wrap" id="progressWrap" style="display:none;">
-  <div class="sec-title">Progreso de recupero</div>
-  <div class="prog-track"><div class="prog-fill" id="progressFill" style="width:0%"></div></div>
-  <div class="prog-labels"><span id="progressLeft">$0 recuperado</span><span id="progressRight">$0 restante</span></div>
-</div>
-<div id="alertBox"></div>
-
-<hr class="div">
-<div class="sec-title">Proyección mes a mes</div>
-<div class="tbl-wrap">
-  <table id="tabla">
-    <colgroup>
-      <col style="width:13%"><col style="width:6%"><col style="width:8%"><col style="width:9%"><col style="width:10%"><col style="width:10%"><col style="width:11%"><col style="width:11%"><col style="width:10%"><col style="width:12%">
-    </colgroup>
-    <thead>
-      <tr>
-        <th style="text-align:left;">Mes</th>
-        <th>Fact. est.</th>
-        <th>Ocup. %</th>
-        <th>Entradas</th>
-        <th>Recaud. entradas</th>
-        <th>Cargo serv.</th>
-        <th>Total bruto</th>
-        <th>Aporte recupero</th>
-        <th>Saldo</th>
-      </tr>
-    </thead>
-    <tbody id="tablaBody"></tbody>
-  </table>
-</div>
-
-<hr class="div">
-<div class="sec-title">Acumulación del recupero</div>
-<div class="legend-row">
-  <span><span class="sq" style="background:#2a78d6;"></span>Recupero acumulado</span>
-  <span><span class="sq" style="background:#e34948;"></span>Adelanto total</span>
-</div>
-<div class="chart-area"><canvas id="chartCanvas" role="img" aria-label="Gráfico de acumulación del recupero mes a mes con variación estacional">Proyección del recupero del adelanto.</canvas></div>
-</div>
-
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recupero de Adelanto — Punto de Equilibrio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script>
-const MESES_ES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
-const COLORS_DOT = ['#e34948','#eb6834','#eda100','#1baf7a','#1baf7a','#2a78d6','#2a78d6','#2a78d6','#eb6834','#eda100','#e34948','#e34948'];
-let chartInstance = null;
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-function buildSeasonGrid() {
-  const grid = document.getElementById('seasonGrid');
-  grid.innerHTML = '';
-  MESES_ES.forEach((m, i) => {
-    const d = document.createElement('div');
-    d.className = 'sfield';
-    d.innerHTML = `<label>${m}</label><div class="sw"><span class="suf">%</span><input type="number" id="s${i}" value="100" min="10" max="200" step="5" style="padding-right:26px!important;"></div><div class="dot" style="background:${COLORS_DOT[i]};"></div>`;
-    grid.appendChild(d);
+:root {
+  --bg:        #F7F6F3;
+  --surface:   #FFFFFF;
+  --surface2:  #F0EEE9;
+  --border:    #E2DFD8;
+  --border-s:  #C8C4BB;
+  --text:      #1A1916;
+  --text2:     #5A574F;
+  --text3:     #98948C;
+  --accent:    #1A56DB;
+  --accent-bg: #EBF2FF;
+  --livepass:  #1A56DB;
+  --producer:  #C05A00;
+  --success:   #0A7A4A;
+  --success-bg:#E6F5EE;
+  --warning:   #92550A;
+  --warning-bg:#FEF3E2;
+  --radius:    8px;
+  --radius-lg: 12px;
+  --shadow:    0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  padding: 32px 16px 64px;
+}
+
+.page { max-width: 960px; margin: 0 auto; }
+
+.page-header { margin-bottom: 28px; display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+.page-header-text { display: flex; flex-direction: column; gap: 2px; }
+.page-header .eyebrow { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); margin-bottom: 2px; }
+.page-header h1 { font-size: 26px; font-weight: 600; color: var(--text); line-height: 1.2; }
+.page-header .sub { font-size: 13px; color: var(--text3); margin-top: 3px; }
+.page-header-logo img { height: 80px; width: auto; display: block; margin-bottom: 10px; }
+
+.btn-print {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  width: 100%; height: 34px; padding: 0 14px;
+  background: var(--text); color: #fff;
+  border: none; border-radius: var(--radius);
+  font-family: inherit; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: background 0.15s;
+}
+.btn-print:hover { background: #000; }
+.btn-print svg { width: 14px; height: 14px; flex-shrink: 0; }
+
+.proyecto-field { margin-bottom: 20px; }
+.proyecto-field .field label { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text3); }
+.proyecto-field input {
+  font-size: 16px; font-weight: 600; height: 44px;
+  text-transform: uppercase;
+}
+.proyecto-field input::placeholder { text-transform: none; font-weight: 400; color: var(--text3); }
+
+@media print {
+  body { background: #fff; padding: 0; }
+  .card { box-shadow: none; border: 1px solid #ddd; break-inside: avoid; }
+  .btn-print, .no-print { display: none !important; }
+  .page { max-width: 100%; }
+  input[type="range"] { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 24px 28px;
+  margin-bottom: 20px;
+}
+
+.sec-label {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text3); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.sec-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 14px; }
+
+@media (max-width: 640px) { .grid-2,.grid-3,.grid-4 { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 420px) { .grid-2,.grid-3,.grid-4 { grid-template-columns: 1fr; } }
+
+.field { display: flex; flex-direction: column; gap: 5px; }
+.field label { font-size: 12px; font-weight: 500; color: var(--text2); }
+
+.input-wrap { position: relative; }
+.input-wrap .pre {
+  position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+  font-size: 13px; color: var(--text3); pointer-events: none; font-weight: 500;
+}
+.input-wrap .suf {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  font-size: 13px; color: var(--text3); pointer-events: none; font-weight: 500;
+}
+.input-wrap input { width: 100%; }
+.input-wrap.has-pre input { padding-left: 24px; }
+.input-wrap.has-suf input { padding-right: 28px; }
+
+input[type="text"], input[type="number"], input[type="month"] {
+  width: 100%; height: 38px; padding: 0 12px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text); background: var(--surface);
+  border: 1px solid var(--border-s); border-radius: var(--radius);
+  outline: none; transition: border-color 0.15s, box-shadow 0.15s;
+  -moz-appearance: textfield;
+}
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; }
+input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,86,219,0.12); }
+input:hover:not(:focus) { border-color: var(--border-s); background: var(--surface2); }
+input[readonly] { background: var(--surface2); color: var(--text3); cursor: default; }
+input[readonly]:hover { background: var(--surface2); }
+
+/* ── Reparto service charge ── */
+.reparto-wrap {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px 18px;
+  margin-top: 14px;
+}
+.reparto-label-row {
+  display: flex; justify-content: space-between;
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  margin-bottom: 8px;
+}
+.lp-label  { color: var(--livepass); }
+.prod-label { color: var(--producer); }
+.reparto-bar-track {
+  height: 14px; border-radius: 999px; overflow: hidden;
+  display: flex; background: var(--border);
+}
+.reparto-bar-lp   { background: var(--livepass); transition: width 0.2s; height: 100%; }
+.reparto-bar-prod { background: var(--producer);  transition: width 0.2s; height: 100%; }
+.reparto-pct-row {
+  display: flex; justify-content: space-between;
+  font-size: 12px; margin-top: 6px;
+}
+.lp-pct   { color: var(--livepass); font-weight: 600; }
+.prod-pct { color: var(--producer);  font-weight: 600; }
+.reparto-note { font-size: 11px; color: var(--text3); margin-top: 6px; }
+
+/* ── Sliders estacionalidad verticales ── */
+.season-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 0;
+  padding: 8px 0 4px;
+}
+.scol {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 6px;
+  flex: 1;
+}
+.scol .spct {
+  font-size: 11px; font-weight: 600;
+  color: var(--text3); line-height: 1;
+  min-height: 16px;
+}
+.scol .strack {
+  position: relative;
+  width: 28px; height: 120px;
+  display: flex; align-items: center; justify-content: center;
+}
+/* The actual range input, rotated */
+.scol .strack input[type="range"] {
+  -webkit-appearance: none; appearance: none;
+  position: absolute;
+  width: 120px; height: 4px;
+  border: none; outline: none;
+  border-radius: 999px; cursor: pointer;
+  background: var(--border-s);
+  transform: rotate(-90deg);
+  transform-origin: center center;
+  margin: 0; padding: 0;
+}
+.scol .strack input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--surface); border: 2px solid var(--accent);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+  cursor: grab; transition: border-color 0.15s, transform 0.1s;
+}
+.scol .strack input[type="range"]:active::-webkit-slider-thumb { cursor: grabbing; transform: scale(1.15); }
+.scol .strack input[type="range"]:hover::-webkit-slider-thumb { border-color: #0F3DAD; }
+.scol .strack input[type="range"]::-moz-range-thumb {
+  width: 18px; height: 18px; border-radius: 50%;
+  background: var(--surface); border: 2px solid var(--accent);
+  cursor: grab;
+}
+.scol .strack input[type="range"]:focus { box-shadow: none; }
+.scol .smon {
+  font-size: 11px; font-weight: 600;
+  color: var(--text2); line-height: 1;
+}
+
+
+/* ── Toggle fuente del recupero ── */
+.toggle-group { display: flex; gap: 0; border: 1px solid var(--border-s); border-radius: var(--radius); overflow: hidden; margin-top: 14px; }
+.toggle-btn {
+  flex: 1; padding: 9px 14px; font-family: inherit; font-size: 12px; font-weight: 600;
+  border: none; cursor: pointer; transition: background 0.15s, color 0.15s;
+  background: var(--surface); color: var(--text3); text-align: center; line-height: 1.3;
+}
+.toggle-btn:not(:last-child) { border-right: 1px solid var(--border-s); }
+.toggle-btn.active-lp   { background: var(--livepass); color: #fff; }
+.toggle-btn.active-prod { background: var(--producer);  color: #fff; }
+.toggle-label { font-size: 11px; color: var(--text3); margin-top: 8px; line-height: 1.5; }
+
+/* ── KPIs ── */
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 14px; margin-bottom: 0; }
+.kpi { background: var(--surface2); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+.kpi .lbl { font-size: 11px; font-weight: 500; color: var(--text3); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.05em; }
+.kpi .val { font-size: 18px; font-weight: 600; color: var(--text); }
+.kpi .val.ac  { color: var(--accent); }
+.kpi .val.lp  { color: var(--livepass); }
+.kpi .val.ok  { color: var(--success); }
+.kpi .val.wn  { color: var(--warning); }
+
+/* ── Progress ── */
+.prog-wrap { margin-top: 20px; }
+.prog-label-row { display: flex; justify-content: space-between; font-size: 12px; color: var(--text3); margin-bottom: 6px; }
+.prog-track { height: 8px; background: var(--surface2); border-radius: 999px; overflow: hidden; border: 1px solid var(--border); }
+.prog-fill  { height: 100%; border-radius: 999px; background: var(--accent); transition: width 0.5s ease; }
+.prog-bottom { display: flex; justify-content: space-between; margin-top: 5px; font-size: 12px; color: var(--text3); }
+
+.alert-warn {
+  background: var(--warning-bg); border: 1px solid #F6C778;
+  border-radius: var(--radius); padding: 10px 14px;
+  font-size: 13px; color: var(--warning);
+  display: flex; gap: 8px; align-items: flex-start; margin-top: 16px;
+}
+
+/* ── Tabla ── */
+.tbl-scroll { overflow-x: auto; border-radius: var(--radius); }
+table { width: 100%; border-collapse: collapse; font-size: 12.5px; min-width: 700px; }
+thead tr { background: var(--surface2); }
+th {
+  font-size: 11px; font-weight: 600; color: var(--text3);
+  text-align: right; padding: 9px 12px;
+  border-bottom: 2px solid var(--border-s);
+  text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap;
+}
+th:first-child { text-align: left; }
+td {
+  text-align: right; padding: 9px 12px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text); white-space: nowrap;
+}
+td:first-child { text-align: left; font-weight: 500; }
+tbody tr:hover td { background: #F9F8F5; }
+tbody tr:nth-child(even) td { background: var(--surface2); }
+tbody tr:nth-child(even):hover td { background: #EFEDE7; }
+tbody tr.eq td {
+  background: var(--success-bg) !important;
+  color: var(--success); font-weight: 600;
+  border-bottom: 1px solid #9EDFC2;
+}
+.badge-eq {
+  display: inline-flex; align-items: center; gap: 3px;
+  background: var(--success); color: #fff;
+  font-size: 10px; font-weight: 600;
+  padding: 1px 7px; border-radius: 999px;
+  margin-left: 6px; vertical-align: middle;
+}
+.factor-hi { color: var(--success); font-weight: 600; }
+.factor-lo { color: var(--warning); font-weight: 600; }
+.factor-ne { color: var(--text3); }
+
+/* ── Gráfico ── */
+.chart-wrap { position: relative; height: 280px; margin-top: 4px; }
+.legend { display: flex; gap: 18px; font-size: 12px; color: var(--text2); margin-bottom: 10px; flex-wrap: wrap; }
+.legend span { display: flex; align-items: center; gap: 6px; }
+.legend .sq { width: 10px; height: 10px; border-radius: 3px; }
+.legend .ln { width: 18px; height: 0; border-top: 2px dashed; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-header">
+    <div class="page-header-text">
+      <span class="eyebrow">Proyecciones</span>
+      <h1>Recupero de Adelanto al Productor</h1>
+      <p class="sub">Calculá mes a mes cuándo recuperás el adelanto a partir del cargo de servicio.</p>
+    </div>
+    <div class="page-header-logo">
+      <img src="data:image/png;base64,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oaYTUY1Y7r///qwaRBUwB5o0BuH58+cL2iGGGImowArYYsBX8pfrddadCCyDm4okbHQQW+z32msvqVu3rm1063ivvfaa9QtXp04d2X///X3zbty4sa+/n+eGDRvk66+/9gsqmJ8Ojg60rIIVEJDxL37xi4CQzd7QArN9qTfnEP0XBP7ll1/K888/L4MGDZKL1HwRnSo8BuzDav+VjRs3hkdMCoUcUFCSvLK+HT16NLRYefTRR2XlypWCvLPOLCkhiBuDCkhS62dN2voeOSeddJJzww03uJo0FJWkbLO+hTxvv/22O4vRAdJanqwLzFPCiiPs999/34lD2D/72c/k4IMPNnnCM5GNdrTEfdQNCPuAAw7wjdaiRQtffz9PEPaqVav8ggrmBy0Wmn3BCvDJ2BgjBx54oE/IFi9Mh7/99tstHgW8A6kBBzWP5KyxjVOzA6bwluImomFwUq0/J+KBKRHmBgx26EuJzPN4A7MJZiQ2Wapm7/Tq1UtmzJjhatT5nC155UPBgQkvV+y8/Ap9rTjCxtR86dKl1rhBw7aOHCOiLgJZx95mm22kUaNGvvGbN2/u6+/niZesKgi72Br27rvvLrvssosfBAk/EDZILOFRhBtobdC0oTRkUxx2XeiMRdCOcdOjrrAfx03nxX/hhRecv/3tb7J69WrPq2BXKFQ6uEUOLpBHiTTWbCMboYEd1gqySVvsNBVH2PqyCF4cGyBhN4aGbRM3bhzYyWzTbLfddtKyZUtfLV+1f9ts3I5dbMKGdv3NN99Yy5iPiHvvvXegzd/LHwthccwKXrpcr5iyq100q2zUvisfffRRVmlBOhikskqsiaDJrtWFRL21/of1H2N8u21oHljLmDx5cmgcXXR1dJExNE56INai4IyJJxP6yauvvio6WEYOIullFvu54ggbdilbEGG7LgRhY4XdljjR6X/+858Higwih8kkMEJSADQzTPGSvAp+my3BZCOYl2afffaRHXfc0XvMuKo5yl1wzAgoksf06dNjlzR+/HgH2iTMK7ETawIQdrYaNrTd119/XXOJ/gflolmzZnL00UfL8ccfL7///e/lN7/5jey3337Wi/cwbWBWhu2gfiWCOLFTxy8s3W+rrbZy13/atm0rnTt3lpNPPlnatWsnjXXtp3bt2unRA59hPlPbemB4qQRUHGFji48tuLvttpvspYuO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" alt="Livepass">
+    </div>
+  </div>
+
+  <!-- ADELANTO -->
+  <div class="card">
+    <div class="sec-label">Adelanto al productor</div>
+    <div class="grid-2">
+      <div class="field">
+        <label>Monto del adelanto</label>
+        <div class="input-wrap has-pre"><span class="pre">$</span><input type="text" id="adelanto" value="500.000" inputmode="numeric"></div>
+      </div>
+      <div class="field">
+        <label>Fecha del primer evento</label>
+        <input type="month" id="fechaInicio">
+      </div>
+    </div>
+  </div>
+
+  <!-- EVENTO -->
+  <div class="card">
+    <div class="sec-label">Datos del evento</div>
+    <div class="grid-4" style="margin-bottom:14px;">
+      <div class="field">
+        <label>Shows por mes</label>
+        <input type="number" id="showsMes" value="2" min="1">
+      </div>
+      <div class="field">
+        <label>Capacidad por show</label>
+        <input type="number" id="capacidad" value="1000" min="1">
+      </div>
+      <div class="field">
+        <label>% ocupación base</label>
+        <div class="input-wrap has-suf"><span class="suf">%</span><input type="number" id="ocupacion" value="80" min="1" max="100"></div>
+      </div>
+      <div class="field">
+        <label>Valor de la entrada</label>
+        <div class="input-wrap has-pre"><span class="pre">$</span><input type="text" id="valorEntrada" value="5.000" inputmode="numeric"></div>
+      </div>
+    </div>
+    <div class="grid-3">
+      <div class="field">
+        <label>% cargo de servicio (s/ entrada)</label>
+        <div class="input-wrap has-suf"><span class="suf">%</span><input type="number" id="cargoServicio" value="15" min="0" max="100" step="0.5"></div>
+      </div>
+      <div class="field">
+        <label>% rebate al productor</label>
+        <div class="input-wrap has-suf"><span class="suf">%</span><input type="number" id="rebateProductor" value="60" min="0" max="100" step="5"></div>
+      </div>
+      <div class="field">
+        <label>% que retiene Livepass</label>
+        <div class="input-wrap has-suf"><span class="suf">%</span><input type="number" id="pctLivepass" value="40" readonly></div>
+      </div>
+    </div>
+
+    <!-- Barra visual del reparto -->
+    <div class="reparto-wrap">
+      <div class="reparto-label-row">
+        <span class="lp-label">Livepass — recupero del adelanto</span>
+        <span class="prod-label">Productor — rebate</span>
+      </div>
+      <div class="reparto-bar-track">
+        <div class="reparto-bar-lp"   id="barLp"   style="width:40%"></div>
+        <div class="reparto-bar-prod" id="barProd"  style="width:60%"></div>
+      </div>
+      <div class="reparto-pct-row">
+        <span class="lp-pct"   id="barLpPct">40% → va al recupero del adelanto</span>
+        <span class="prod-pct" id="barProdPct">60% → va al productor</span>
+      </div>
+      <div class="reparto-note" id="repartoNote">El aporte mensual al recupero se calcula sobre la parte de Livepass (40% del cargo de servicio).</div>
+    </div>
+
+    <!-- Selector: quién aporta al recupero -->
+    <div style="margin-top:14px;">
+      <div style="font-size:12px;font-weight:500;color:var(--text2);margin-bottom:6px;">¿Quién aporta al recupero del adelanto?</div>
+      <div class="toggle-group">
+        <button class="toggle-btn active-lp" id="btnLivepass" onclick="setFuente('livepass')">
+          Livepass<br><span style="font-weight:400;font-size:11px;">Su parte del cargo de servicio</span>
+        </button>
+        <button class="toggle-btn" id="btnProductor" onclick="setFuente('productor')">
+          Productor<br><span style="font-weight:400;font-size:11px;">Su rebate del cargo de servicio</span>
+        </button>
+        <button class="toggle-btn" id="btnAmbos" onclick="setFuente('ambos')">
+          Ambos<br><span style="font-weight:400;font-size:11px;">100% del cargo de servicio</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="grid-2" style="margin-top:14px;">
+      <div class="field">
+        <label>Meses a proyectar</label>
+        <input type="number" id="mesesProyectar" value="12" min="1" max="60">
+      </div>
+    </div>
+  </div>
+
+  <!-- ESTACIONALIDAD -->
+  <div class="card">
+    <div class="sec-label">Variación estacional por mes</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:14px;line-height:1.5;">
+      Mové cada barra para ajustar el factor de ocupación mes a mes. 100% = ocupación base sin cambios. Más a la derecha = temporada alta, a la izquierda = temporada baja.
+    </p>
+    <div class="season-row" id="seasonRow"></div>
+  </div>
+
+  <!-- RESUMEN -->
+  <div class="card">
+    <div class="sec-label">Resumen</div>
+    <div class="kpi-row" id="kpis"></div>
+    <div class="prog-wrap" id="progressWrap">
+      <div class="prog-label-row">
+        <span>Progreso de recupero</span>
+        <span id="pctLabel">0%</span>
+      </div>
+      <div class="prog-track"><div class="prog-fill" id="progressFill" style="width:0%"></div></div>
+      <div class="prog-bottom">
+        <span id="progressLeft">$0 recuperado</span>
+        <span id="progressRight">$0 restante</span>
+      </div>
+    </div>
+    <div id="alertBox"></div>
+  </div>
+
+  <!-- TABLA -->
+  <div class="card">
+    <div class="sec-label">Proyección mes a mes</div>
+    <div class="tbl-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th style="text-align:left;">Mes</th>
+            <th>Factor est.</th>
+            <th>Ocup. %</th>
+            <th>Entradas</th>
+            <th>Recaud. entradas</th>
+            <th>Cargo serv. total</th>
+            <th>Parte Livepass</th>
+            <th>Parte productor</th>
+            <th>Aporte al recupero</th>
+            <th>Recuperado acum.</th>
+            <th>Saldo restante</th>
+          </tr>
+        </thead>
+        <tbody id="tablaBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- GRÁFICO -->
+  <div class="card">
+    <div class="sec-label">Acumulación del recupero</div>
+    <div class="legend">
+      <span><span class="sq" style="background:#1A56DB;"></span>Recupero acumulado</span>
+      <span><span class="ln" style="border-color:#E34848;"></span>Adelanto total</span>
+    </div>
+    <div class="chart-wrap"><canvas id="chartCanvas"></canvas></div>
+  </div>
+
+</div>
+<script>
+const MESES = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+let chart = null;
+let fuenteRecupero = 'livepass'; // 'livepass' | 'productor' | 'ambos'
+
+function setFuente(f) {
+  fuenteRecupero = f;
+  document.getElementById('btnLivepass').className  = 'toggle-btn' + (f === 'livepass'  ? ' active-lp'   : '');
+  document.getElementById('btnProductor').className = 'toggle-btn' + (f === 'productor' ? ' active-prod' : '');
+  document.getElementById('btnAmbos').className     = 'toggle-btn' + (f === 'ambos'     ? ' active-lp'   : '');
+  const lp = parseFloat(document.getElementById('pctLivepass').value) || 0;
+  const pr = parseFloat(document.getElementById('rebateProductor').value) || 0;
+  const notas = {
+    livepass:  `El aporte al recupero se calcula sobre la parte de Livepass (${lp}% del cargo de servicio).`,
+    productor: `El aporte al recupero se calcula sobre el rebate del productor (${pr}% del cargo de servicio).`,
+    ambos:     `El aporte al recupero usa el 100% del cargo de servicio (parte Livepass + rebate productor).`
+  };
+  document.getElementById('repartoNote').textContent = notas[f];
+  calcular();
+}
+
+/* ── Estacionalidad: sliders verticales ── */
+function buildSeasonRow() {
+  const row = document.getElementById('seasonRow');
+  row.innerHTML = '';
+  MESES.forEach((m, i) => {
+    const col = document.createElement('div');
+    col.className = 'scol';
+    col.innerHTML = `
+      <span class="spct" id="sv${i}">100%</span>
+      <div class="strack">
+        <input type="range" id="s${i}" min="50" max="150" step="5" value="100"
+          aria-label="Factor ocupación ${m}">
+      </div>
+      <span class="smon">${m}</span>`;
+    row.appendChild(col);
+    col.querySelector(`#s${i}`).addEventListener('input', () => {
+      updateSliderLabel(i);
+      calcular();
+    });
   });
 }
 
-function parseMoney(str) {
-  return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0;
-}
-function fmt(n) { return '$' + Math.round(n).toLocaleString('es-AR'); }
-function fmtN(n) { return Math.round(n).toLocaleString('es-AR'); }
-function getMonthLabel(base, offset) {
-  const d = new Date(base + '-01');
-  d.setMonth(d.getMonth() + offset);
-  return MESES_ES[d.getMonth()] + " '" + String(d.getFullYear()).slice(2);
-}
-function getMonthIndex(base, offset) {
-  const d = new Date(base + '-01');
-  d.setMonth(d.getMonth() + offset);
-  return d.getMonth();
+function updateSliderLabel(i) {
+  const val = parseInt(document.getElementById('s'+i).value);
+  const lbl = document.getElementById('sv'+i);
+  lbl.textContent = val + '%';
+  lbl.style.color = val > 100 ? 'var(--success)' : val < 100 ? 'var(--warning)' : 'var(--text3)';
 }
 
 function getSeasonFactors() {
-  return Array.from({length: 12}, (_, i) => {
-    const el = document.getElementById('s' + i);
-    return el ? (parseFloat(el.value) || 100) / 100 : 1;
+  return Array.from({length:12}, (_,i) => {
+    const el = document.getElementById('s'+i);
+    return el ? parseInt(el.value) / 100 : 1;
   });
 }
 
+/* ── Reparto barra ── */
+function updateReparto() {
+  const rebate  = Math.min(100, Math.max(0, parseFloat(document.getElementById('rebateProductor').value) || 0));
+  const lp      = Math.round((100 - rebate) * 10) / 10;
+  document.getElementById('pctLivepass').value = lp;
+  document.getElementById('barLp').style.width   = lp + '%';
+  document.getElementById('barProd').style.width  = rebate + '%';
+  document.getElementById('barLpPct').textContent   = lp + '% → Livepass';
+  document.getElementById('barProdPct').textContent = rebate + '% → Productor';
+  // update note text
+  const notas = {
+    livepass:  'El aporte al recupero se calcula sobre la parte de Livepass (' + lp + '% del cargo de servicio).',
+    productor: 'El aporte al recupero se calcula sobre el rebate del productor (' + rebate + '% del cargo de servicio).',
+    ambos:     'El aporte al recupero usa el 100% del cargo de servicio (parte Livepass + rebate productor).'
+  };
+  const noteEl = document.getElementById('repartoNote');
+  if (noteEl) noteEl.textContent = notas[fuenteRecupero] || notas.livepass;
+}
+
+/* ── Helpers ── */
+function parseMoney(v) { return parseFloat(String(v).replace(/\./g,'').replace(',','.')) || 0; }
+function fmt(n)  { return '$ ' + Math.round(n).toLocaleString('es-AR'); }
+function fmtN(n) { return Math.round(n).toLocaleString('es-AR'); }
+function fmtPct(n) { return n.toFixed(0) + '%'; }
+function getMonthLabel(base, offset) {
+  const [y, m] = base.split('-').map(Number);
+  const d = new Date(y, m - 1 + offset, 1);
+  return MESES[d.getMonth()] + " '" + String(d.getFullYear()).slice(2);
+}
+function getMonthIdx(base, offset) {
+  const [y, m] = base.split('-').map(Number);
+  const d = new Date(y, m - 1 + offset, 1);
+  return d.getMonth();
+}
+
+/* ── Cálculo principal ── */
 function calcular() {
-  const adelanto = parseMoney(document.getElementById('adelanto').value);
-  const shows = parseInt(document.getElementById('showsMes').value) || 1;
-  const capacidad = parseInt(document.getElementById('capacidad').value) || 0;
-  const ocupBase = parseFloat(document.getElementById('ocupacion').value) / 100 || 0;
+  const adelanto     = parseMoney(document.getElementById('adelanto').value);
+  const shows        = parseInt(document.getElementById('showsMes').value) || 1;
+  const capacidad    = parseInt(document.getElementById('capacidad').value) || 0;
+  const ocupBase     = parseFloat(document.getElementById('ocupacion').value) / 100 || 0;
   const valorEntrada = parseMoney(document.getElementById('valorEntrada').value);
-  const cargoPct = parseFloat(document.getElementById('cargoServicio').value) / 100 || 0;
-  const pctRecupero = parseFloat(document.getElementById('pctRecupero').value) / 100 || 1;
-  const meses = parseInt(document.getElementById('mesesProyectar').value) || 12;
-  const fechaBase = document.getElementById('fechaInicio').value || '2025-07';
+  const cargoPct     = parseFloat(document.getElementById('cargoServicio').value) / 100 || 0;
+  const rebateProd   = Math.min(100, Math.max(0, parseFloat(document.getElementById('rebateProductor').value) || 0)) / 100;
+  const pctLivepass  = 1 - rebateProd;
+  const meses        = parseInt(document.getElementById('mesesProyectar').value) || 12;
+  const fechaBase    = document.getElementById('fechaInicio').value || getCurrentMonthStr();
   const seasonFactors = getSeasonFactors();
 
-  let saldo = adelanto;
-  let mesEquilibrio = null;
-  const rows = [];
-  const labelsChart = [];
-  const dataAcum = [];
-  let totalRecuperado = 0;
+  let saldo = adelanto, mesEquilibrio = null, totalRecuperado = 0;
+  const rows = [], labels = [], dataAcum = [];
 
   for (let i = 0; i < meses; i++) {
-    const label = getMonthLabel(fechaBase, i);
-    const mIdx = getMonthIndex(fechaBase, i);
-    const factor = seasonFactors[mIdx];
-    const ocupMes = Math.min(1, ocupBase * factor);
-    const entradasMes = Math.round(capacidad * ocupMes) * shows;
-    const recaudEntradas = entradasMes * valorEntrada;
-    const recaudCargo = recaudEntradas * cargoPct;
-    const totalBruto = recaudEntradas + recaudCargo;
-    const aporteCalc = totalBruto * pctRecupero;
-    const saldoAntes = saldo;
-    const aporte = Math.min(aporteCalc, Math.max(0, saldo));
-    saldo = Math.max(0, saldo - aporteCalc);
-    const esEq = saldoAntes > 0 && saldo <= 0;
+    const label        = getMonthLabel(fechaBase, i);
+    const mIdx         = getMonthIdx(fechaBase, i);
+    const factor       = seasonFactors[mIdx];
+    const ocupMes      = Math.min(1, ocupBase * factor);
+    const entradasMes  = Math.round(capacidad * ocupMes) * shows;
+    const cargoPorEntrada = valorEntrada * cargoPct;
+    const recaudEnt    = entradasMes * valorEntrada;
+    const cargoTotal   = entradasMes * cargoPorEntrada;
+    const parteLp      = cargoTotal * pctLivepass;
+    const parteProd    = cargoTotal * rebateProd;
+    const aporteBase   = fuenteRecupero === 'livepass' ? parteLp
+                       : fuenteRecupero === 'productor' ? parteProd
+                       : cargoTotal;
+    const saldoAntes   = saldo;
+    const aporte       = Math.min(aporteBase, Math.max(0, saldo));
+    saldo              = Math.max(0, saldo - aporteBase);
+    const esEq         = saldoAntes > 0 && saldo <= 0;
     if (esEq && mesEquilibrio === null) mesEquilibrio = i;
-    totalRecuperado += aporte;
-    rows.push({ label, factor, ocupMes, entradasMes, recaudEntradas, recaudCargo, totalBruto, aporte, saldo, esEq });
-    labelsChart.push(label);
+    totalRecuperado   += aporte;
+
+    rows.push({ label, factor, ocupMes, entradasMes, recaudEnt, cargoTotal, parteLp, parteProd, aporteBase, aporte, acum: Math.min(adelanto, totalRecuperado), saldo, esEq });
+    labels.push(label);
     dataAcum.push(Math.round(Math.min(adelanto, totalRecuperado)));
   }
 
-  const pctRecuperado = adelanto > 0 ? Math.min(100, (totalRecuperado / adelanto) * 100) : 0;
+  const pctRec    = adelanto > 0 ? Math.min(100, (totalRecuperado / adelanto) * 100) : 0;
+  const avgLp     = rows.reduce((a,r) => a + r.parteLp, 0) / rows.length;
+  const avgCargo  = rows.reduce((a,r) => a + r.cargoTotal, 0) / rows.length;
 
-  document.getElementById('progressWrap').style.display = adelanto > 0 ? 'block' : 'none';
-  document.getElementById('progressFill').style.width = pctRecuperado.toFixed(1) + '%';
-  document.getElementById('progressLeft').textContent = fmt(Math.min(adelanto, totalRecuperado)) + ' recuperado';
+  document.getElementById('progressFill').style.width = pctRec.toFixed(1) + '%';
+  document.getElementById('pctLabel').textContent     = pctRec.toFixed(1) + '%';
+  document.getElementById('progressLeft').textContent  = fmt(Math.min(adelanto, totalRecuperado)) + ' recuperado';
   document.getElementById('progressRight').textContent = fmt(Math.max(0, adelanto - totalRecuperado)) + ' restante';
 
-  const avgAporte = rows.reduce((a, r) => a + r.aporte, 0) / rows.length;
   document.getElementById('kpis').innerHTML = `
     <div class="kpi"><div class="lbl">Adelanto total</div><div class="val">${fmt(adelanto)}</div></div>
-    <div class="kpi"><div class="lbl">Aporte mensual promedio</div><div class="val ac">${fmt(avgAporte)}</div></div>
-    <div class="kpi"><div class="lbl">Punto de equilibrio</div><div class="val ok">${mesEquilibrio !== null ? 'Mes ' + (mesEquilibrio + 1) + ' (' + rows[mesEquilibrio].label + ')' : 'No en ' + meses + ' meses'}</div></div>
-    <div class="kpi"><div class="lbl">Recuperado en ${meses} meses</div><div class="val ${pctRecuperado >= 100 ? 'ok' : 'wn'}">${pctRecuperado.toFixed(1)}%</div></div>
+    <div class="kpi"><div class="lbl">Cargo serv. mensual promedio</div><div class="val ac">${fmt(avgCargo)}</div></div>
+    <div class="kpi"><div class="lbl">Aporte al recupero (prom. mensual)</div><div class="val lp">${fmt(rows.reduce((a,r)=>a+r.aporteBase,0)/rows.length)}</div></div>
+    <div class="kpi"><div class="lbl">Punto de equilibrio</div><div class="val ok">${mesEquilibrio !== null ? 'Mes '+(mesEquilibrio+1)+' ('+rows[mesEquilibrio].label+')' : 'No en '+meses+' meses'}</div></div>
+    <div class="kpi"><div class="lbl">Recuperado en ${meses} meses</div><div class="val ${pctRec>=100?'ok':'wn'}">${pctRec.toFixed(1)}%</div></div>
   `;
 
   const alertBox = document.getElementById('alertBox');
-  if (mesEquilibrio === null && adelanto > 0) {
-    alertBox.innerHTML = `<div class="alert-box"><i class="ti ti-alert-triangle" aria-hidden="true"></i>El adelanto no se recupera en los ${meses} meses proyectados con la estacionalidad definida.</div>`;
-  } else { alertBox.innerHTML = ''; }
+  alertBox.innerHTML = mesEquilibrio === null && adelanto > 0
+    ? `<div class="alert-warn">⚠️ El adelanto no se recupera en los ${meses} meses proyectados. Revisá el reparto, el cargo de servicio o aumentá los meses.</div>`
+    : '';
 
-  document.getElementById('tablaBody').innerHTML = rows.map(r => `
-    <tr class="${r.esEq ? 'eq' : ''}">
-      <td>${r.label}${r.esEq ? ' <span class="badge-eq"><i class="ti ti-flag-2" style="font-size:10px" aria-hidden="true"></i>Equilibrio</span>' : ''}</td>
-      <td style="color:${r.factor > 1 ? 'var(--text-success)' : r.factor < 1 ? 'var(--text-warning)' : 'var(--text-muted)'};">${(r.factor * 100).toFixed(0)}%</td>
-      <td>${(r.ocupMes * 100).toFixed(0)}%</td>
+  document.getElementById('tablaBody').innerHTML = rows.map(r => {
+    const fc = r.factor > 1.0001 ? 'factor-hi' : r.factor < 0.9999 ? 'factor-lo' : 'factor-ne';
+    return `<tr class="${r.esEq ? 'eq' : ''}">
+      <td>${r.label}${r.esEq ? '<span class="badge-eq">EQUILIBRIO</span>' : ''}</td>
+      <td class="${fc}">${fmtPct(r.factor*100)}</td>
+      <td>${fmtPct(r.ocupMes*100)}</td>
       <td>${fmtN(r.entradasMes)}</td>
-      <td>${fmt(r.recaudEntradas)}</td>
-      <td>${fmt(r.recaudCargo)}</td>
-      <td>${fmt(r.totalBruto)}</td>
-      <td>${fmt(r.aporte)}</td>
+      <td>${fmt(r.recaudEnt)}</td>
+      <td>${fmt(r.cargoTotal)}</td>
+      <td style="color:var(--livepass);font-weight:600;">${fmt(r.parteLp)}</td>
+      <td style="color:var(--producer);">${fmt(r.parteProd)}</td>
+      <td>${fmt(r.aporteBase)}</td>
+      <td>${fmt(r.acum)}</td>
       <td>${fmt(r.saldo)}</td>
-    </tr>
-  `).join('');
+    </tr>`;
+  }).join('');
 
-  if (chartInstance) { chartInstance.destroy(); chartInstance = null; }
+  if (chart) { chart.destroy(); chart = null; }
   const ctx = document.getElementById('chartCanvas').getContext('2d');
-  const barColors = rows.map(r => r.esEq ? '#1baf7a' : 'rgba(42,120,214,0.7)');
-  chartInstance = new Chart(ctx, {
+  chart = new Chart(ctx, {
     type: 'bar',
     data: {
-      labels: labelsChart,
+      labels,
       datasets: [
         {
           label: 'Recupero acumulado',
-          data: dataAcum,
-          backgroundColor: barColors,
-          borderWidth: 0,
-          borderRadius: 4,
-          borderSkipped: 'bottom',
-          order: 2
+          data: dataAcum.map(v => Math.min(v, adelanto)),
+          backgroundColor: rows.map(r => r.esEq ? '#0A7A4A' : 'rgba(26,86,219,0.75)'),
+          borderWidth: 0, borderRadius: 4, borderSkipped: 'bottom', order: 2
         },
         {
           label: 'Adelanto total',
-          data: labelsChart.map(() => Math.round(adelanto)),
-          type: 'line',
-          borderColor: '#e34948',
-          borderWidth: 2,
-          borderDash: [4, 3],
-          pointRadius: 0,
-          fill: false,
-          tension: 0,
-          order: 1
+          data: labels.map(() => Math.round(adelanto)),
+          type: 'line', borderColor: '#E34848', borderWidth: 2,
+          borderDash: [5,4], pointRadius: 0, fill: false, tension: 0, order: 1
         }
       ]
     },
     options: {
-      responsive: true,
-      maintainAspectRatio: false,
+      responsive: true, maintainAspectRatio: false,
       plugins: {
         legend: { display: false },
         tooltip: {
           callbacks: {
-            label: (ctx) => {
-              if (ctx.dataset.type === 'line') return ' Adelanto: ' + fmt(ctx.raw);
-              return ' Recuperado: ' + fmt(ctx.raw) + (adelanto > 0 ? ' (' + ((ctx.raw / adelanto) * 100).toFixed(1) + '%)' : '');
-            }
+            label: c => c.dataset.type === 'line'
+              ? ' Adelanto: ' + fmt(c.raw)
+              : ' Recuperado: ' + fmt(c.raw) + (adelanto > 0 ? ' (' + ((c.raw/adelanto)*100).toFixed(1) + '%)' : '')
           }
         }
       },
       scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11 }, color: '#898781', autoSkip: true, maxRotation: 45 } },
+        x: { grid:{display:false}, ticks:{font:{size:11,family:'Inter'},color:'#98948C',autoSkip:true,maxRotation:45} },
         y: {
-          grid: { color: 'rgba(180,180,170,0.2)', lineWidth: 1 },
-          ticks: { font: { size: 11 }, color: '#898781', callback: v => '$' + (v >= 1000000 ? (v/1000000).toFixed(1)+'M' : v >= 1000 ? (v/1000).toFixed(0)+'k' : v) }
+          grid:{color:'rgba(0,0,0,0.05)',lineWidth:1},
+          ticks:{font:{size:11,family:'Inter'},color:'#98948C',
+            callback: v => '$'+(v>=1000000?(v/1000000).toFixed(1)+'M':v>=1000?(v/1000).toFixed(0)+'k':v)}
         }
       }
     }
@@ -288,25 +689,39 @@ function calcular() {
 }
 
 function autoFmt(input) {
-  let raw = input.value.replace(/\D/g, '');
-  if (!raw) return;
-  input.value = parseInt(raw, 10).toLocaleString('es-AR');
+  const raw = input.value.replace(/\D/g,'');
+  if (raw) input.value = parseInt(raw,10).toLocaleString('es-AR');
 }
 
-buildSeasonGrid();
+/* ── Init ── */
+function getCurrentMonthStr() {
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+}
+document.getElementById('fechaInicio').value = getCurrentMonthStr();
+
+buildSeasonRow();
 
 ['adelanto','valorEntrada'].forEach(id => {
   const el = document.getElementById(id);
-  el.addEventListener('blur', () => autoFmt(el));
-  el.addEventListener('keydown', e => { if (e.key === 'Enter') { autoFmt(el); calcular(); } });
+  el.addEventListener('blur', () => { autoFmt(el); calcular(); });
+  el.addEventListener('keydown', e => { if (e.key==='Enter') { autoFmt(el); calcular(); } });
 });
 
+document.getElementById('rebateProductor').addEventListener('input', () => { updateReparto(); calcular(); });
+
 document.addEventListener('input', e => {
-  if (e.target && e.target.tagName === 'INPUT') calcular();
+  if (!e.target || e.target.tagName !== 'INPUT') return;
+  if (['adelanto','valorEntrada','rebateProductor'].includes(e.target.id)) return;
+  if (e.target.type === 'range') return; // handled by individual listeners
+  calcular();
 });
 document.addEventListener('change', e => {
   if (e.target && e.target.tagName === 'INPUT') calcular();
 });
 
+updateReparto();
 calcular();
 </script>
+</body>
+</html>
