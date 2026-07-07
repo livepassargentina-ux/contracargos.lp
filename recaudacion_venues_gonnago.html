@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recaudación de Service Charge por Venue - Gonna Go</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #F7F6F3;
+  --surface:   #FFFFFF;
+  --surface2:  #F0EEE9;
+  --border:    #E2DFD8;
+  --border-s:  #C8C4BB;
+  --text:      #1A1916;
+  --text2:     #5A574F;
+  --text3:     #98948C;
+  --accent:    #1A56DB;
+  --accent-bg: #EBF2FF;
+  --success:   #0A7A4A;
+  --success-bg:#E6F5EE;
+  --warning:   #92550A;
+  --warning-bg:#FEF3E2;
+  --danger:    #C22B2B;
+  --danger-bg: #FBEAEA;
+  --radius:    8px;
+  --radius-lg: 12px;
+  --shadow:    0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  padding: 32px 16px 64px;
+}
+
+.page { max-width: 1280px; margin: 0 auto; }
+
+.page-header { margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.page-header-text { display: flex; flex-direction: column; gap: 2px; }
+.page-header .eyebrow { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); margin-bottom: 2px; }
+.page-header h1 { font-size: 26px; font-weight: 600; color: var(--text); line-height: 1.2; }
+.page-header .sub { font-size: 13px; color: var(--text3); margin-top: 3px; }
+.page-header-logo img { height: 44px; width: auto; display: block; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  padding: 24px 28px;
+  margin-bottom: 20px;
+}
+
+.sec-label {
+  font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.07em;
+  color: var(--text3); margin-bottom: 14px;
+  display: flex; align-items: center; gap: 8px;
+}
+.sec-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+/* ── KPIs ── */
+.kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; }
+@media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (max-width: 640px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
+.kpi {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 14px 16px;
+}
+.kpi .lbl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3); margin-bottom: 6px; }
+.kpi .val { font-size: 20px; font-weight: 700; color: var(--text); }
+.kpi .val.sm { font-size: 15px; }
+.kpi .sub2 { font-size: 11px; color: var(--text3); margin-top: 3px; }
+
+/* ── Chart wrap ── */
+.chart-wrap { position: relative; height: 340px; }
+.chart-wrap.short { height: 260px; }
+
+/* ── Venue legend / filter chips ── */
+.venue-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.vchip {
+  display: flex; align-items: center; gap: 6px;
+  font-size: 12px; font-weight: 500; color: var(--text2);
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 999px; padding: 5px 10px 5px 8px; cursor: pointer;
+  user-select: none; transition: opacity .15s, background .15s;
+}
+.vchip .sw { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
+.vchip.off { opacity: 0.4; }
+.vchip:hover { background: var(--border); }
+
+/* ── Select ── */
+select {
+  width: 100%; height: 38px; padding: 0 12px;
+  font-family: inherit; font-size: 13px; font-weight: 500;
+  color: var(--text); background: var(--surface);
+  border: 1px solid var(--border-s); border-radius: var(--radius);
+  outline: none; cursor: pointer;
+}
+select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,86,219,0.12); }
+.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; max-width: 360px; }
+.field label { font-size: 12px; font-weight: 500; color: var(--text2); }
+
+.venue-summary { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 16px; }
+.venue-summary .mini { font-size: 12px; color: var(--text3); }
+.venue-summary .mini b { color: var(--text); font-size: 15px; display: block; margin-top: 2px; }
+
+/* ── Table ── */
+.tbl-scroll { overflow-x: auto; }
+table.data { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px; }
+table.data thead tr { background: var(--surface2); }
+table.data th {
+  text-align: right; padding: 9px 10px; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.04em; color: var(--text3);
+  border-bottom: 1px solid var(--border); white-space: nowrap;
+}
+table.data th:first-child, table.data th:nth-child(2) { text-align: left; }
+table.data td { padding: 9px 10px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+table.data td:first-child, table.data td:nth-child(2) { text-align: left; }
+table.data tbody tr:hover td { background: #F9F8F5; }
+table.data tfoot td { font-weight: 700; border-top: 2px solid var(--border-s); border-bottom: none; background: var(--surface2); }
+
+.var-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.var-up   { color: var(--success); background: var(--success-bg); }
+.var-down { color: var(--danger);  background: var(--danger-bg); }
+.var-flat { color: var(--text3);   background: var(--surface2); }
+
+#tablaComparativo th:nth-child(n+2), #tablaComparativo td:nth-child(n+2) { text-align: right; }
+#tablaComparativo th:first-child, #tablaComparativo td:first-child { text-align: left; }
+#tablaMensualVenue th:nth-child(2), #tablaMensualVenue td:nth-child(2) { text-align: right; }
+
+.total-cell { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
+.mini-bar-track { width: 90px; height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.mini-bar-fill { display: block; height: 100%; border-radius: 3px; transition: width .2s; }
+
+/* ── Doughnut + legend list ── */
+.medios-grid { display: grid; grid-template-columns: 240px 1fr; gap: 28px; align-items: center; }
+@media (max-width: 700px) { .medios-grid { grid-template-columns: 1fr; } }
+.medios-list { display: flex; flex-direction: column; gap: 10px; }
+.medio-row { display: flex; align-items: center; gap: 10px; }
+.medio-row .sw { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
+.medio-row .name { flex: 1; font-size: 13px; color: var(--text2); }
+.medio-row .amt { font-size: 13px; font-weight: 600; color: var(--text); }
+.medio-row .pct { font-size: 12px; color: var(--text3); width: 46px; text-align: right; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="page-header">
+    <div class="page-header-text">
+      <div class="eyebrow">Livepass · Reportes</div>
+      <h1>Recaudación de Service Charge por Venue - Gonna Go</h1>
+      <div class="sub">Recaudación mes a mes, agrupada por venue, a partir del reporte de ventas</div>
+    </div>
+    <div class="page-header-logo">
+      <img src="https://livepassargentina-ux.github.io/contracargos.lp/logolivepass.png" alt="Livepass">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-label">Resumen general</div>
+    <div class="kpi-grid">
+      <div class="kpi">
+        <div class="lbl">Total recaudado</div>
+        <div class="val" id="kpiTotal">—</div>
+        <div class="sub2" id="kpiRango">—</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">Eventos / funciones</div>
+        <div class="val" id="kpiEventos">—</div>
+        <div class="sub2" id="kpiVenues">—</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">Venue líder</div>
+        <div class="val sm" id="kpiVenueTop">—</div>
+        <div class="sub2" id="kpiVenueTopMonto">—</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">Mes de mayor recaudación</div>
+        <div class="val sm" id="kpiMesTop">—</div>
+        <div class="sub2" id="kpiMesTopMonto">—</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">Entradas vendidas*</div>
+        <div class="val" id="kpiEntradas">—</div>
+        <div class="sub2">total del período</div>
+      </div>
+      <div class="kpi">
+        <div class="lbl">Service charge promedio</div>
+        <div class="val" id="kpiPromedioEntrada">—</div>
+        <div class="sub2">por entrada</div>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:14px;">* Entradas vendidas con service charge (no incluye entradas con valor $0).</div>
+  </div>
+
+  <div class="card">
+    <div class="sec-label">Recaudación por mes, por venue</div>
+    <div class="venue-chips" id="venueChips"></div>
+    <div class="chart-wrap"><canvas id="chartMesVenue"></canvas></div>
+  </div>
+
+  <div class="card">
+    <div class="sec-label">Comparativo por venue</div>
+    <div class="tbl-scroll">
+      <table class="data" id="tablaComparativo">
+        <thead><tr><th>Venue</th><th>Total recaudado</th><th>Entradas</th><th>Promedio por entrada</th><th>Variación último mes</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-label">Detalle por venue</div>
+    <div class="field">
+      <label for="venueSelect">Elegí un venue</label>
+      <select id="venueSelect"></select>
+    </div>
+    <div class="venue-summary" id="venueSummary"></div>
+    <div class="chart-wrap short" style="margin-bottom:20px;"><canvas id="chartVenueDetail"></canvas></div>
+    <div class="tbl-scroll" style="margin-bottom:20px;">
+      <table class="data" id="tablaMensualVenue">
+        <thead><tr><th>Mes</th><th>Recaudado</th><th>Variación</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+    <div class="tbl-scroll">
+      <table class="data" id="tablaEventos">
+        <thead><tr><th>Evento</th><th>Fecha función</th><th>Entradas</th><th>Service charge</th></tr></thead>
+        <tbody></tbody>
+        <tfoot></tfoot>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="sec-label">Service charge por medio de pago</div>
+    <div class="medios-grid">
+      <div class="chart-wrap short"><canvas id="chartMedios"></canvas></div>
+      <div class="medios-list" id="mediosList"></div>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-top:14px;">* Las ventas con Line ID están agrupadas dentro de "Tarjeta de crédito".</div>
+  </div>
+
+</div>
+
+<script>
+/* ══════════════════════════════ DATOS ══════════════════════════════ */
+const EVENTS = [{"Venue": "Baradero", "Evento": "Rock en Baradero", "Función": "2026-04-03 15:00:00", "cargo_total": 202127790.0, "entradas": 8432}, {"Venue": "Club Re", "Evento": "BERSUIT en Club Re", "Función": "2026-04-18 20:00:00", "cargo_total": 4678720.0, "entradas": 666}, {"Venue": "Club Re", "Evento": "CEROUNNO & H DE PERRA en Quilmes", "Función": "2026-04-24 22:00:00", "cargo_total": 676700.0, "entradas": 216}, {"Venue": "Club Re", "Evento": "CRUZANDO EL CHARCO en Club Re", "Función": "2026-05-08 20:00:00", "cargo_total": 4537700.0, "entradas": 524}, {"Venue": "Club Re", "Evento": "DOS MINUTOS en Club Re", "Función": "2026-04-11 20:00:00", "cargo_total": 3237960.0, "entradas": 750}, {"Venue": "Club Re", "Evento": "EMMANUEL HORVILLEUR en Club Re", "Función": "2026-06-12 20:00:00", "cargo_total": 1013720.0, "entradas": 180}, {"Venue": "Club Re", "Evento": "JUANA MOLINA en Club Re", "Función": "2026-06-13 20:00:00", "cargo_total": 1385330.0, "entradas": 243}, {"Venue": "Club Re", "Evento": "KAPANGA en Club Re", "Función": "2026-06-20 20:00:00", "cargo_total": 3494050.0, "entradas": 630}, {"Venue": "Club Re", "Evento": "LOS CAFRES en Club Re", "Función": "2026-05-16 20:00:00", "cargo_total": 4931840.0, "entradas": 734}, {"Venue": "Club Re", "Evento": "LOS ESPÍRITUS en Club Re", "Función": "2026-06-19 20:00:00", "cargo_total": 1452840.0, "entradas": 289}, {"Venue": "Club Re", "Evento": "PITI FERNANDEZ en Club Re", "Función": "2026-03-28 20:00:00", "cargo_total": 2232880.0, "entradas": 347}, {"Venue": "Estadio Atenas", "Evento": "CUARTETO DE NOS en Estadio Atenas LP", "Función": "2026-05-29 21:00:00", "cargo_total": 24515680.0, "entradas": 2597}, {"Venue": "Estadio Atenas", "Evento": "GUASONES en Estadio Atenas LP", "Función": "2026-06-06 21:00:00", "cargo_total": 25238890.0, "entradas": 2978}, {"Venue": "Estadio Malvinas Argentinas", "Evento": "BAD RELIGION en Buenos Aires", "Función": "2026-04-22 18:00:00", "cargo_total": 67421050.0, "entradas": 4239}, {"Venue": "Hipódromo de La Plata", "Evento": "EL KUELGUE en el Hipódromo de La Plata", "Función": "2026-04-18 21:00:00", "cargo_total": 16225680.0, "entradas": 1734}, {"Venue": "Hipódromo de La Plata", "Evento": "KE PERSONAJES en el Hipódromo de La Plata", "Función": "2026-05-09 21:00:00", "cargo_total": 63163480.0, "entradas": 7161}, {"Venue": "Hipódromo de La Plata", "Evento": "LOS GARDELITOS en el Hipódromo de La Plata", "Función": "2026-05-01 21:00:00", "cargo_total": 32655000.0, "entradas": 4665}, {"Venue": "Teatro Argentino La Plata", "Evento": "ANDRÉS VERNAZZA - PELIGRO NARCISISTAS en Sala Piazzolla - Teatro Argentino LP", "Función": "2026-03-20 20:30:00", "cargo_total": 217944.0, "entradas": 50}, {"Venue": "Teatro Argentino La Plata", "Evento": "CAMERATA BARILOCHE en la Sala Ginastera - Teatro Argentino La Plata", "Función": "2026-04-04 21:00:00", "cargo_total": 4732070.0, "entradas": 645}, {"Venue": "Teatro Argentino La Plata", "Evento": "NANUTRIA - OPINIONES VARIAS - STAND UP COMEDY en Sala Piazzolla - Teatro Argentino LP", "Función": "2026-03-28 20:00:00", "cargo_total": 841480.0, "entradas": 193}, {"Venue": "Teatro Argentino La Plata", "Evento": "RATA BLANCA en la Sala Ginastera - Teatro Argentino La Plata", "Función": "2026-04-05 21:00:00", "cargo_total": 11582650.0, "entradas": 1044}, {"Venue": "Teatro Ópera La Plata", "Evento": "ADRIÁN BERRA en el Teatro Ópera LP", "Función": "2026-06-06 20:00:00", "cargo_total": 756800.0, "entradas": 172}, {"Venue": "Teatro Ópera La Plata", "Evento": "ASSPERA en el Teatro Ópera LP", "Función": "2026-05-02 20:00:00", "cargo_total": 711480.0, "entradas": 196}, {"Venue": "Teatro Ópera La Plata", "Evento": "BANDALOS CHINOS en el Teatro Ópera LP", "Función": "2026-04-10 20:00:00", "cargo_total": 3235700.0, "entradas": 494}, {"Venue": "Teatro Ópera La Plata", "Evento": "BERSUIT VERGARABAT en el Teatro Ópera LP", "Función": "2026-03-20 20:00:00", "cargo_total": 5656620.0, "entradas": 831}, {"Venue": "Teatro Ópera La Plata", "Evento": "BULLDOG en el Teatro Ópera LP", "Función": "2026-03-27 20:00:00", "cargo_total": 896540.0, "entradas": 214}, {"Venue": "Teatro Ópera La Plata", "Evento": "EL ZAR en el Teatro Ópera LP", "Función": "2026-04-24 20:00:00", "cargo_total": 4618950.0, "entradas": 795}, {"Venue": "Teatro Ópera La Plata", "Evento": "EMMANUEL HORVILLEUR en el Teatro Ópera LP", "Función": "2026-05-16 20:00:00", "cargo_total": 1584990.0, "entradas": 279}, {"Venue": "Teatro Ópera La Plata", "Evento": "ESQUINA LIBERTAD en el Teatro Ópera LP", "Función": "2026-03-28 20:00:00", "cargo_total": 647780.0, "entradas": 218}, {"Venue": "Teatro Ópera La Plata", "Evento": "ESTELARES en el Teatro Ópera LP", "Función": "2026-05-09 20:00:00", "cargo_total": 5676500.0, "entradas": 787}, {"Venue": "Teatro Ópera La Plata", "Evento": "ETERNA INOCENCIA + LOQUERO en el Teatro Ópera LP", "Función": "2026-06-18 20:00:00", "cargo_total": 1108976.0, "entradas": 251}, {"Venue": "Teatro Ópera La Plata", "Evento": "FIESTA PLOP en el Teatro Ópera LP", "Función": "2026-06-13 23:55:00", "cargo_total": 999110.0, "entradas": 450}, {"Venue": "Teatro Ópera La Plata", "Evento": "FMS en el Teatro Ópera LP", "Función": "2026-02-13 17:30:00", "cargo_total": 3018960.0, "entradas": 470}, {"Venue": "Teatro Ópera La Plata", "Evento": "GUSTAVO CORDERA en el Teatro Ópera LP", "Función": "2026-06-20 20:00:00", "cargo_total": 1707810.0, "entradas": 303}, {"Venue": "Teatro Ópera La Plata", "Evento": "HOMER EL MERO MERO en el Teatro Ópera LP", "Función": "2026-05-31 20:00:00", "cargo_total": 2563000.0, "entradas": 530}, {"Venue": "Teatro Ópera La Plata", "Evento": "HORCAS en el Teatro Ópera LP", "Función": "2026-05-30 20:00:00", "cargo_total": 989400.0, "entradas": 194}, {"Venue": "Teatro Ópera La Plata", "Evento": "INDIA BOMBAY + EL TERCERO A en el Teatro Ópera LP", "Función": "2026-04-17 21:00:00", "cargo_total": 538780.0, "entradas": 196}, {"Venue": "Teatro Ópera La Plata", "Evento": "JUANA MOLINA en el Teatro Ópera LP", "Función": "2026-05-22 20:00:00", "cargo_total": 1584990.0, "entradas": 279}, {"Venue": "Teatro Ópera La Plata", "Evento": "KAPANGA en el Teatro Ópera LP", "Función": "2026-03-13 20:00:00", "cargo_total": 2150600.0, "entradas": 437}, {"Venue": "Teatro Ópera La Plata", "Evento": "LA PORTUARIA en el Teatro Ópera LP", "Función": "2026-03-07 20:00:00", "cargo_total": 1824660.0, "entradas": 279}, {"Venue": "Teatro Ópera La Plata", "Evento": "LOS CAFRES en el Teatro Ópera LP", "Función": "2026-05-15 20:00:00", "cargo_total": 2948160.0, "entradas": 416}, {"Venue": "Teatro Ópera La Plata", "Evento": "LOS ESPÍRITUS en el Teatro Ópera LP", "Función": "2026-03-21 20:00:00", "cargo_total": 2070760.0, "entradas": 414}, {"Venue": "Teatro Ópera La Plata", "Evento": "LOS TABALEROS en el Teatro Ópera LP", "Función": "2026-04-25 20:00:00", "cargo_total": 1554900.0, "entradas": 365}, {"Venue": "Teatro Ópera La Plata", "Evento": "MASSACRE en el Teatro Ópera LP", "Función": "2026-05-29 20:00:00", "cargo_total": 1531560.0, "entradas": 276}, {"Venue": "Teatro Ópera La Plata", "Evento": "NUESTRO ROMANCE en el Teatro Ópera LP", "Función": "2026-05-01 20:00:00", "cargo_total": 1141500.0, "entradas": 265}, {"Venue": "Teatro Ópera La Plata", "Evento": "OPERA CUMBIA en el Teatro Ópera LP", "Función": "2026-04-11 23:55:00", "cargo_total": 516650.0, "entradas": 212}, {"Venue": "Teatro Ópera La Plata", "Evento": "POLENTA en el Teatro Ópera LP", "Función": "2026-05-23 23:55:00", "cargo_total": 857710.0, "entradas": 424}, {"Venue": "Teatro Ópera La Plata", "Evento": "REY GARUFA en el Teatro Ópera LP", "Función": "2026-04-18 20:00:00", "cargo_total": 2850630.0, "entradas": 658}, {"Venue": "Teatro Ópera La Plata", "Evento": "TURF en el Teatro Ópera La Plata 73 Años Aniversario", "Función": "2026-03-14 20:00:00", "cargo_total": 5133060.0, "entradas": 829}, {"Venue": "Teatro Ópera La Plata", "Evento": "ZOE GOTUSSO en el Teatro Ópera LP", "Función": "2026-05-08 20:00:00", "cargo_total": 5307740.0, "entradas": 668}, {"Venue": "WOS (Gira)", "Evento": "WOS en Bahía Blanca", "Función": "2026-05-01 21:00:00", "cargo_total": 18468000.0, "entradas": 1944}, {"Venue": "WOS (Gira)", "Evento": "WOS en Ituzaingó", "Función": "2026-05-23 21:00:00", "cargo_total": 21445000.0, "entradas": 2150}, {"Venue": "WOS (Gira)", "Evento": "WOS en Junín", "Función": "2026-05-09 21:00:00", "cargo_total": 12530500.0, "entradas": 1319}, {"Venue": "WOS (Gira)", "Evento": "WOS en Lanús - Sábado 20 de junio", "Función": "2026-06-20 21:00:00", "cargo_total": 27729900.0, "entradas": 2855}, {"Venue": "WOS (Gira)", "Evento": "WOS en Lanús - Viernes 19 de junio", "Función": "2026-06-19 21:00:00", "cargo_total": 25213900.0, "entradas": 2610}, {"Venue": "WOS (Gira)", "Evento": "WOS en Villa Ballester", "Función": "2026-06-12 21:00:00", "cargo_total": 43529750.0, "entradas": 4577}];
+const MEDIOS = {"Cuenta DNI": 1387540.0, "Efectivo": 16824930.0, "Mercado Pago": 240259167.2, "Tarjeta de crédito": 394665678.4, "Tarjeta de débito": 36327504.4};
+
+const VENUE_COLORS = ['#2563EB','#F97316','#16A34A','#DC2626','#9333EA','#0D9488','#DB2777','#CA8A04','#0EA5E9','#4B5563'];
+const MEDIO_COLORS = { 'Tarjeta de crédito':'#2563EB', 'Tarjeta de débito':'#0D9488', 'Mercado Pago':'#16A34A', 'Efectivo':'#CA8A04', 'Cuenta DNI':'#9333EA', 'Otro':'#4B5563' };
+
+/* ══════════════════════════════ HELPERS ══════════════════════════════ */
+const fmt   = n => '$' + Math.round(n).toLocaleString('es-AR');
+const fmtN  = n => Math.round(n).toLocaleString('es-AR');
+const fmtCompact = n => {
+  const a = Math.abs(n);
+  if (a >= 1000000) return '$' + (n/1000000).toFixed(1) + 'M';
+  if (a >= 1000) return '$' + (n/1000).toFixed(0) + 'k';
+  return '$' + Math.round(n);
+};
+
+function monthKey(dateStr) {
+  const d = new Date(dateStr);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0');
+}
+function monthLabel(key) {
+  const [y,m] = key.split('-').map(Number);
+  const d = new Date(y, m-1, 1);
+  let s = d.toLocaleString('es-AR', { month: 'short', year: 'numeric' }).replace('.','');
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+let charts = {};
+function destroyChart(key) { if (charts[key]) { charts[key].destroy(); charts[key] = null; } }
+
+function varBadge(pct, isFirst) {
+  if (isFirst) return '<span class="var-badge var-flat">primer mes</span>';
+  const cls = pct > 0.5 ? 'var-up' : pct < -0.5 ? 'var-down' : 'var-flat';
+  const arrow = pct > 0.5 ? '▲' : pct < -0.5 ? '▼' : '≈';
+  return `<span class="var-badge ${cls}">${arrow} ${pct>=0?'+':''}${pct.toFixed(1)}%</span>`;
+}
+
+/* ══════════════════════════════ AGREGACIÓN ══════════════════════════════ */
+let venueOrder = [];
+let venueColorMap = {};
+let hiddenVenues = new Set();
+let monthKeys = [];
+let venueMonthTotals = {};
+let venueTotals = {};
+let monthTotals = {};
+let venueEvents = {};
+
+function buildAggregates(events) {
+  venueMonthTotals = {}; venueTotals = {}; monthTotals = {}; venueEvents = {};
+  const monthSet = new Set();
+
+  events.forEach(ev => {
+    const venue = ev.Venue;
+    const mk = monthKey(ev['Función']);
+    monthSet.add(mk);
+    venueMonthTotals[venue] = venueMonthTotals[venue] || {};
+    venueMonthTotals[venue][mk] = (venueMonthTotals[venue][mk] || 0) + ev.cargo_total;
+    venueTotals[venue] = (venueTotals[venue] || 0) + ev.cargo_total;
+    monthTotals[mk] = (monthTotals[mk] || 0) + ev.cargo_total;
+    venueEvents[venue] = venueEvents[venue] || [];
+    venueEvents[venue].push(ev);
+  });
+
+  monthKeys = Array.from(monthSet).sort();
+  venueOrder = Object.keys(venueTotals).sort((a,b) => venueTotals[b]-venueTotals[a]);
+  venueColorMap = {};
+  venueOrder.forEach((v,i) => venueColorMap[v] = VENUE_COLORS[i % VENUE_COLORS.length]);
+}
+
+/* ══════════════════════════════ RENDER: KPIs ══════════════════════════════ */
+function renderKpis(events) {
+  const total = events.reduce((a,e) => a + e.cargo_total, 0);
+  document.getElementById('kpiTotal').textContent = fmt(total);
+  document.getElementById('kpiRango').textContent = monthKeys.length ? (monthLabel(monthKeys[0]) + ' – ' + monthLabel(monthKeys[monthKeys.length-1])) : '—';
+  document.getElementById('kpiEventos').textContent = fmtN(events.length);
+  document.getElementById('kpiVenues').textContent = venueOrder.length + ' venues';
+
+  const topVenue = venueOrder[0];
+  document.getElementById('kpiVenueTop').textContent = topVenue || '—';
+  document.getElementById('kpiVenueTopMonto').textContent = topVenue ? (fmt(venueTotals[topVenue]) + ' (' + ((venueTotals[topVenue]/total)*100).toFixed(1) + '%)') : '—';
+
+  const topMonth = monthKeys.slice().sort((a,b) => monthTotals[b]-monthTotals[a])[0];
+  document.getElementById('kpiMesTop').textContent = topMonth ? monthLabel(topMonth) : '—';
+  document.getElementById('kpiMesTopMonto').textContent = topMonth ? fmt(monthTotals[topMonth]) : '—';
+
+  const totalEntradas = events.reduce((a,e) => a + e.entradas, 0);
+  document.getElementById('kpiEntradas').textContent = fmtN(totalEntradas);
+  document.getElementById('kpiPromedioEntrada').textContent = totalEntradas ? fmt(total/totalEntradas) : '—';
+}
+
+/* ══════════════════════════════ RENDER: Chips ══════════════════════════════ */
+function renderChips() {
+  const wrap = document.getElementById('venueChips');
+  wrap.innerHTML = '';
+  venueOrder.forEach(v => {
+    const chip = document.createElement('div');
+    chip.className = 'vchip' + (hiddenVenues.has(v) ? ' off' : '');
+    chip.innerHTML = `<span class="sw" style="background:${venueColorMap[v]}"></span>${v}`;
+    chip.onclick = () => {
+      if (hiddenVenues.has(v)) hiddenVenues.delete(v); else hiddenVenues.add(v);
+      renderChips();
+      renderMesVenueChart();
+    };
+    wrap.appendChild(chip);
+  });
+}
+
+/* ══════════════════════════════ RENDER: Chart mes x venue (stacked) ══════════════════════════════ */
+function renderMesVenueChart() {
+  destroyChart('mesVenue');
+  const ctx = document.getElementById('chartMesVenue').getContext('2d');
+  const labels = monthKeys.map(monthLabel);
+  const datasets = venueOrder
+    .filter(v => !hiddenVenues.has(v))
+    .map(v => ({
+      label: v,
+      data: monthKeys.map(mk => Math.round(venueMonthTotals[v][mk] || 0)),
+      backgroundColor: venueColorMap[v],
+      borderRadius: 3,
+      borderSkipped: false,
+      stack: 'stack1'
+    }));
+
+  charts.mesVenue = new Chart(ctx, {
+    type: 'bar',
+    data: { labels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: c => ' ' + c.dataset.label + ': ' + fmt(c.raw),
+            footer: items => {
+              const t = items.reduce((a,i) => a + i.raw, 0);
+              return 'Total mes: ' + fmt(t);
+            }
+          }
+        }
+      },
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11, family: 'Inter' }, color: '#98948C' } },
+        y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11, family: 'Inter' }, color: '#98948C', callback: v => fmtCompact(v) } }
+      }
+    }
+  });
+}
+
+/* ══════════════════════════════ RENDER: Detalle por venue ══════════════════════════════ */
+function populateVenueSelect() {
+  const sel = document.getElementById('venueSelect');
+  sel.innerHTML = venueOrder.map(v => `<option value="${v}">${v}</option>`).join('');
+  sel.onchange = renderVenueDetail;
+}
+
+function renderVenueDetail() {
+  const sel = document.getElementById('venueSelect');
+  const venue = sel.value;
+  if (!venue) return;
+
+  const evs = (venueEvents[venue] || []).slice().sort((a,b) => new Date(a['Función']) - new Date(b['Función']));
+  const total = evs.reduce((a,e) => a + e.cargo_total, 0);
+  const entradas = evs.reduce((a,e) => a + e.entradas, 0);
+
+  document.getElementById('venueSummary').innerHTML = `
+    <div class="mini">Service charge total<b>${fmt(total)}</b></div>
+    <div class="mini">Funciones<b>${evs.length}</b></div>
+    <div class="mini">Entradas vendidas<b>${fmtN(entradas)}</b></div>
+    <div class="mini">Promedio por función<b>${fmt(evs.length ? total/evs.length : 0)}</b></div>
+    <div class="mini">Promedio por entrada<b>${fmt(entradas ? total/entradas : 0)}</b></div>
+  `;
+
+  destroyChart('venueDetail');
+  const ctx = document.getElementById('chartVenueDetail').getContext('2d');
+  const vMonths = monthKeys.filter(mk => venueMonthTotals[venue] && venueMonthTotals[venue][mk]);
+  charts.venueDetail = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: vMonths.map(monthLabel),
+      datasets: [{
+        label: venue,
+        data: vMonths.map(mk => Math.round(venueMonthTotals[venue][mk] || 0)),
+        backgroundColor: venueColorMap[venue],
+        borderRadius: 4, borderSkipped: false
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + fmt(c.raw) } } },
+      scales: {
+        x: { grid: { display: false }, ticks: { font: { size: 11, family: 'Inter' }, color: '#98948C' } },
+        y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11, family: 'Inter' }, color: '#98948C', callback: v => fmtCompact(v) } }
+      }
+    }
+  });
+
+  const tbodyM = document.querySelector('#tablaMensualVenue tbody');
+  tbodyM.innerHTML = vMonths.map((mk, i) => {
+    const val = venueMonthTotals[venue][mk];
+    let badge;
+    if (i === 0) {
+      badge = varBadge(0, true);
+    } else {
+      const prevVal = venueMonthTotals[venue][vMonths[i-1]];
+      badge = prevVal > 0 ? varBadge(((val-prevVal)/prevVal)*100, false) : varBadge(0, true);
+    }
+    return `<tr><td>${monthLabel(mk)}</td><td>${fmt(val)}</td><td>${badge}</td></tr>`;
+  }).join('');
+
+  const tbody = document.querySelector('#tablaEventos tbody');
+  tbody.innerHTML = evs.map(e => `
+    <tr>
+      <td>${e.Evento}</td>
+      <td>${new Date(e['Función']).toLocaleDateString('es-AR', { day:'2-digit', month:'2-digit', year:'numeric' })}</td>
+      <td>${fmtN(e.entradas)}</td>
+      <td>${fmt(e.cargo_total)}</td>
+    </tr>
+  `).join('');
+  document.querySelector('#tablaEventos tfoot').innerHTML = `
+    <tr><td colspan="2">Total ${venue}</td><td>${fmtN(entradas)}</td><td>${fmt(total)}</td></tr>
+  `;
+}
+
+/* ══════════════════════════════ RENDER: Medios de pago ══════════════════════════════ */
+function renderMedios(medios) {
+  const total = Object.values(medios).reduce((a,b) => a+b, 0);
+  const entries = Object.entries(medios).sort((a,b) => b[1]-a[1]);
+
+  destroyChart('medios');
+  const ctx = document.getElementById('chartMedios').getContext('2d');
+  charts.medios = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels: entries.map(e => e[0]),
+      datasets: [{
+        data: entries.map(e => Math.round(e[1])),
+        backgroundColor: entries.map(e => MEDIO_COLORS[e[0]] || '#98948C'),
+        borderWidth: 2, borderColor: '#FFFFFF'
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: c => ' ' + c.label + ': ' + fmt(c.raw) + ' (' + ((c.raw/total)*100).toFixed(1) + '%)' } }
+      }
+    }
+  });
+
+  document.getElementById('mediosList').innerHTML = entries.map(([name,val]) => `
+    <div class="medio-row">
+      <span class="sw" style="background:${MEDIO_COLORS[name] || '#98948C'}"></span>
+      <span class="name">${name}</span>
+      <span class="amt">${fmt(val)}</span>
+      <span class="pct">${((val/total)*100).toFixed(1)}%</span>
+    </div>
+  `).join('');
+}
+
+/* ══════════════════════════════ RENDER: Comparativo por venue ══════════════════════════════ */
+function renderComparativo() {
+  const tbody = document.querySelector('#tablaComparativo tbody');
+  const maxTotal = Math.max(...venueOrder.map(v => venueTotals[v]));
+  tbody.innerHTML = venueOrder.map(v => {
+    const total = venueTotals[v];
+    const entradas = (venueEvents[v] || []).reduce((a,e) => a + e.entradas, 0);
+    const promedio = entradas ? total / entradas : 0;
+    const vMonths = Object.keys(venueMonthTotals[v]).sort();
+    let badge;
+    if (vMonths.length < 2) {
+      badge = varBadge(0, true);
+    } else {
+      const last = venueMonthTotals[v][vMonths[vMonths.length-1]];
+      const prev = venueMonthTotals[v][vMonths[vMonths.length-2]];
+      badge = prev > 0 ? varBadge(((last-prev)/prev)*100, false) : varBadge(0, true);
+    }
+    const barPct = maxTotal ? (total / maxTotal * 100).toFixed(1) : 0;
+    return `<tr>
+      <td>${v}</td>
+      <td>
+        <div class="total-cell">
+          <span>${fmt(total)}</span>
+          <span class="mini-bar-track"><span class="mini-bar-fill" style="width:${barPct}%;background:${venueColorMap[v]}"></span></span>
+        </div>
+      </td>
+      <td>${fmtN(entradas)}</td>
+      <td>${fmt(promedio)}</td>
+      <td>${badge}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ══════════════════════════════ RENDER ALL ══════════════════════════════ */
+function renderAll() {
+  buildAggregates(EVENTS);
+  hiddenVenues = new Set();
+  renderKpis(EVENTS);
+  renderChips();
+  renderMesVenueChart();
+  renderComparativo();
+  populateVenueSelect();
+  renderVenueDetail();
+  renderMedios(MEDIOS);
+}
+
+renderAll();
+</script>
+</body>
+</html>
