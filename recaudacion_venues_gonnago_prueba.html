@@ -43,6 +43,16 @@
   *, *::before, *::after { transition: none !important; animation: none !important; }
 }
 
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity .7s cubic-bezier(.16,.8,.4,1), transform .7s cubic-bezier(.16,.8,.4,1);
+}
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; }
+}
+
 body {
   font-family: var(--font-body);
   background:
@@ -231,7 +241,7 @@ table.data tfoot td:first-child { font-family: var(--font-body); }
     </div>
   </div>
 
-  <div class="card">
+  <div class="card reveal">
     <div class="sec-label">Resumen general</div>
     <div class="kpi-grid">
       <div class="kpi kpi--hero">
@@ -268,13 +278,13 @@ table.data tfoot td:first-child { font-family: var(--font-body); }
     <div style="font-size:11px;color:var(--text3);margin-top:14px;">* Entradas vendidas con service charge (no incluye entradas con valor $0).</div>
   </div>
 
-  <div class="card">
+  <div class="card reveal">
     <div class="sec-label">Recaudación por mes, por venue</div>
     <div class="venue-chips" id="venueChips"></div>
     <div class="chart-wrap"><canvas id="chartMesVenue"></canvas></div>
   </div>
 
-  <div class="card">
+  <div class="card reveal">
     <div class="sec-label">Comparativo por venue</div>
     <div class="tbl-scroll">
       <table class="data" id="tablaComparativo">
@@ -284,7 +294,7 @@ table.data tfoot td:first-child { font-family: var(--font-body); }
     </div>
   </div>
 
-  <div class="card">
+  <div class="card reveal">
     <div class="sec-label">Detalle por venue</div>
     <div class="field">
       <label for="venueSelect">Elegí un venue</label>
@@ -307,7 +317,7 @@ table.data tfoot td:first-child { font-family: var(--font-body); }
     </div>
   </div>
 
-  <div class="card">
+  <div class="card reveal">
     <div class="sec-label">Service charge por medio de pago</div>
     <div class="medios-grid">
       <div class="chart-wrap short"><canvas id="chartMedios"></canvas></div>
@@ -668,7 +678,26 @@ function renderAll() {
   renderMedios(MEDIOS);
 }
 
+/* ══════════════════════════════ Scroll reveal ══════════════════════════════ */
+function initScrollReveal() {
+  const targets = document.querySelectorAll('.reveal');
+  if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+    targets.forEach(el => el.classList.add('is-visible'));
+    return;
+  }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+  targets.forEach(el => observer.observe(el));
+}
+
 renderAll();
+initScrollReveal();
 </script>
 </body>
 </html>
