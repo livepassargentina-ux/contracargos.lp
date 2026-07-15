@@ -8,36 +8,57 @@
 <link rel="icon" type="image/png" href="https://livepassargentina-ux.github.io/contracargos.lp/favico.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --bg:        #F7F6F3;
-  --surface:   #FFFFFF;
-  --surface2:  #F0EEE9;
-  --border:    #E2DFD8;
-  --border-s:  #C8C4BB;
-  --text:      #1A1916;
-  --text2:     #5A574F;
-  --text3:     #98948C;
-  --accent:    #1A56DB;
-  --accent-bg: #EBF2FF;
-  --success:   #0A7A4A;
-  --success-bg:#E6F5EE;
-  --warning:   #92550A;
-  --warning-bg:#FEF3E2;
-  --danger:    #C22B2B;
-  --danger-bg: #FBEAEA;
+  --bg:        #262032;
+  --surface:   #322B3F;
+  --surface2:  #3D3550;
+  --surface3:  #473D5C;
+  --border:    #786C9033;
+  --border-s:  #786C90;
+  --text:      #F3EFE9;
+  --text2:     #BBB2CC;
+  --text3:     #A7A0B4;
+  --marquee:   #F2B705;
+  --marquee-bg:#F2B70518;
+  --wash:      #9B6BF2;
+  --wash-bg:   #9B6BF218;
+  --success:   #4ADE80;
+  --success-bg:#4ADE8018;
+  --danger:    #FB7A7A;
+  --danger-bg: #FB6B6B18;
   --radius:    8px;
-  --radius-lg: 12px;
-  --shadow:    0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --radius-lg: 14px;
+  --shadow:    0 8px 24px rgba(0,0,0,0.35), 0 2px 6px rgba(0,0,0,0.25);
+  --font-display: 'Bricolage Grotesque', system-ui, sans-serif;
+  --font-body:    'IBM Plex Sans', system-ui, -apple-system, sans-serif;
+  --font-mono:    'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+.reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition: opacity .7s cubic-bezier(.16,.8,.4,1), transform .7s cubic-bezier(.16,.8,.4,1);
+}
+.reveal.is-visible { opacity: 1; transform: translateY(0); }
+@media (prefers-reduced-motion: reduce) {
+  .reveal { opacity: 1; transform: none; }
 }
 
 body {
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-  background: var(--bg);
+  font-family: var(--font-body);
+  background:
+    radial-gradient(900px 480px at 12% -8%, #F2B70512, transparent 60%),
+    radial-gradient(900px 520px at 100% 0%, #9B6BF214, transparent 55%),
+    var(--bg);
   color: var(--text);
   font-size: 14px;
   line-height: 1.5;
@@ -47,12 +68,37 @@ body {
 
 .page { max-width: 1280px; margin: 0 auto; }
 
-.page-header { margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap; }
+.page-header {
+  position: relative;
+  margin-bottom: 22px;
+  display: flex; align-items: center; justify-content: space-between; gap: 20px; flex-wrap: wrap;
+  background: var(--surface);
+  border: 1px solid var(--border-s);
+  border-radius: 18px;
+  padding: 22px 32px;
+}
+.page-header::before, .page-header::after {
+  content: '';
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 20px; height: 20px; border-radius: 50%;
+  background: var(--bg);
+  border: 1px solid var(--border-s);
+}
+.page-header::before { left: -11px; }
+.page-header::after  { right: -11px; }
 .page-header-text { display: flex; flex-direction: column; gap: 2px; }
-.page-header .eyebrow { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text3); margin-bottom: 2px; }
-.page-header h1 { font-size: 26px; font-weight: 600; color: var(--text); line-height: 1.2; }
-.page-header .sub { font-size: 13px; color: var(--text3); margin-top: 3px; }
-.page-header-logo img { height: 44px; width: auto; display: block; }
+.page-header .eyebrow {
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.14em;
+  color: var(--marquee); margin-bottom: 6px;
+}
+.page-header h1 { font-family: var(--font-display); font-size: 27px; font-weight: 600; color: var(--text); line-height: 1.25; letter-spacing: -0.01em; }
+.page-header .sub { font-size: 13px; color: var(--text3); margin-top: 5px; }
+.page-header-logo {
+  padding-left: 28px;
+  border-left: 1px dashed var(--border-s);
+}
+.page-header-logo img { height: 40px; width: auto; display: block; filter: brightness(0) invert(1); opacity: 0.85; }
 
 .card {
   background: var(--surface);
@@ -64,75 +110,102 @@ body {
 }
 
 .sec-label {
-  font-size: 11px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.07em;
-  color: var(--text3); margin-bottom: 14px;
-  display: flex; align-items: center; gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px; font-weight: 500;
+  text-transform: uppercase; letter-spacing: 0.1em;
+  color: var(--text3); margin-bottom: 16px;
+  display: flex; align-items: center; gap: 10px;
 }
-.sec-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+.sec-label::after { content: ''; flex: 1; height: 1px; background: var(--border-s); opacity: 0.5; }
 
 /* ── KPIs ── */
-.kpi-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; }
-@media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } }
+.kpi-grid { display: grid; grid-template-columns: 1.6fr repeat(5, 1fr); gap: 14px; }
+@media (max-width: 1100px) { .kpi-grid { grid-template-columns: repeat(3, 1fr); } .kpi--hero { grid-column: 1 / -1; } }
 @media (max-width: 640px) { .kpi-grid { grid-template-columns: repeat(2, 1fr); } }
 .kpi {
+  min-width: 0;
   background: var(--surface2); border: 1px solid var(--border);
-  border-radius: var(--radius); padding: 14px 16px;
+  border-radius: var(--radius); padding: 16px 18px;
 }
-.kpi .lbl { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3); margin-bottom: 6px; }
-.kpi .val { font-size: 20px; font-weight: 700; color: var(--text); }
-.kpi .val.sm { font-size: 15px; }
-.kpi .sub2 { font-size: 11px; color: var(--text3); margin-top: 3px; }
+.kpi .lbl { font-family: var(--font-body); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3); margin-bottom: 8px; }
+.kpi .val { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 19px; font-weight: 600; color: var(--text); overflow-wrap: break-word; }
+.kpi .val.sm { font-family: var(--font-display); font-size: 16px; font-weight: 600; overflow-wrap: break-word; }
+.kpi .sub2 { font-size: 11px; color: var(--text3); margin-top: 5px; }
+
+.kpi--hero {
+  background: linear-gradient(160deg, var(--marquee-bg), var(--surface2) 60%);
+  border-color: #F2B70540;
+}
+.kpi--hero .lbl { color: var(--marquee); }
+.kpi--hero .val { font-size: 30px; font-weight: 700; color: var(--marquee); text-shadow: 0 0 24px #F2B70530; }
 
 /* ── Chart wrap ── */
 .chart-wrap { position: relative; height: 340px; }
 .chart-wrap.short { height: 260px; }
 
 /* ── Venue legend / filter chips ── */
-.venue-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.venue-chips { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
 .vchip {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 7px;
+  font: inherit; -webkit-appearance: none; appearance: none;
+  font-family: var(--font-body);
   font-size: 12px; font-weight: 500; color: var(--text2);
   background: var(--surface2); border: 1px solid var(--border);
-  border-radius: 999px; padding: 5px 10px 5px 8px; cursor: pointer;
-  user-select: none; transition: opacity .15s, background .15s;
+  border-radius: 999px; padding: 6px 12px 6px 9px; cursor: pointer;
+  user-select: none; transition: opacity .15s, background .15s, border-color .15s;
 }
+.vchip:focus-visible { outline: 2px solid var(--marquee); outline-offset: 2px; }
 .vchip .sw { width: 9px; height: 9px; border-radius: 3px; flex-shrink: 0; }
-.vchip.off { opacity: 0.4; }
-.vchip:hover { background: var(--border); }
+.vchip.off { opacity: 0.38; }
+.vchip:hover { background: var(--surface3); border-color: var(--border-s); }
 
 /* ── Select ── */
 select {
-  width: 100%; height: 38px; padding: 0 12px;
-  font-family: inherit; font-size: 13px; font-weight: 500;
-  color: var(--text); background: var(--surface);
+  width: 100%; height: 40px; padding: 0 14px;
+  font-family: var(--font-body); font-size: 13px; font-weight: 500;
+  color: var(--text); background: var(--surface2);
   border: 1px solid var(--border-s); border-radius: var(--radius);
   outline: none; cursor: pointer;
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text3) 50%), linear-gradient(135deg, var(--text3) 50%, transparent 50%);
+  background-position: calc(100% - 18px) center, calc(100% - 13px) center;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
 }
-select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(26,86,219,0.12); }
-.field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 16px; max-width: 360px; }
+select:focus-visible { border-color: var(--marquee); box-shadow: 0 0 0 3px #F2B70525; }
+.field { display: flex; flex-direction: column; gap: 6px; margin-bottom: 18px; max-width: 360px; }
 .field label { font-size: 12px; font-weight: 500; color: var(--text2); }
 
-.venue-summary { display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 16px; }
+.venue-summary { display: flex; gap: 24px; flex-wrap: wrap; margin-bottom: 18px; }
 .venue-summary .mini { font-size: 12px; color: var(--text3); }
-.venue-summary .mini b { color: var(--text); font-size: 15px; display: block; margin-top: 2px; }
+.venue-summary .mini b { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--text); font-weight: 600; font-size: 16px; display: block; margin-top: 4px; }
 
 /* ── Table ── */
 .tbl-scroll { overflow-x: auto; }
 table.data { width: 100%; border-collapse: collapse; font-size: 13px; min-width: 560px; }
 table.data thead tr { background: var(--surface2); }
 table.data th {
-  text-align: right; padding: 9px 10px; font-size: 11px; font-weight: 600;
-  text-transform: uppercase; letter-spacing: 0.04em; color: var(--text3);
-  border-bottom: 1px solid var(--border); white-space: nowrap;
+  font-family: var(--font-body);
+  text-align: right; padding: 11px 12px; font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.05em; color: var(--text3);
+  border-bottom: 1px solid var(--border-s); white-space: nowrap;
 }
 table.data th:first-child, table.data th:nth-child(2) { text-align: left; }
-table.data td { padding: 9px 10px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
-table.data td:first-child, table.data td:nth-child(2) { text-align: left; }
-table.data tbody tr:hover td { background: #F9F8F5; }
-table.data tfoot td { font-weight: 700; border-top: 2px solid var(--border-s); border-bottom: none; background: var(--surface2); }
+table.data td {
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums;
+  padding: 11px 12px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap;
+  color: var(--text2);
+}
+table.data td:first-child, table.data td:nth-child(2) { font-family: var(--font-body); text-align: left; color: var(--text); font-weight: 500; }
+table.data tbody tr { transition: background .1s; }
+table.data tbody tr:hover td {
+  background: var(--surface3);
+  box-shadow: inset 3px 0 0 var(--marquee);
+}
+table.data tfoot td { font-family: var(--font-mono); font-weight: 700; color: var(--text); border-top: 1px solid var(--border-s); border-bottom: none; background: var(--surface2); }
+table.data tfoot td:first-child { font-family: var(--font-body); }
 
-.var-badge { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.var-badge { font-family: var(--font-mono); display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; padding: 3px 9px; border-radius: 999px; }
 .var-up   { color: var(--success); background: var(--success-bg); }
 .var-down { color: var(--danger);  background: var(--danger-bg); }
 .var-flat { color: var(--text3);   background: var(--surface2); }
@@ -141,19 +214,19 @@ table.data tfoot td { font-weight: 700; border-top: 2px solid var(--border-s); b
 #tablaComparativo th:first-child, #tablaComparativo td:first-child { text-align: left; }
 #tablaMensualVenue th:nth-child(2), #tablaMensualVenue td:nth-child(2) { text-align: right; }
 
-.total-cell { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; }
-.mini-bar-track { width: 90px; height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; }
+.total-cell { display: flex; flex-direction: column; align-items: flex-end; gap: 5px; }
+.mini-bar-track { width: 90px; height: 4px; border-radius: 3px; background: var(--surface3); overflow: hidden; }
 .mini-bar-fill { display: block; height: 100%; border-radius: 3px; transition: width .2s; }
 
 /* ── Doughnut + legend list ── */
 .medios-grid { display: grid; grid-template-columns: 240px 1fr; gap: 28px; align-items: center; }
 @media (max-width: 700px) { .medios-grid { grid-template-columns: 1fr; } }
-.medios-list { display: flex; flex-direction: column; gap: 10px; }
+.medios-list { display: flex; flex-direction: column; gap: 11px; }
 .medio-row { display: flex; align-items: center; gap: 10px; }
 .medio-row .sw { width: 11px; height: 11px; border-radius: 3px; flex-shrink: 0; }
-.medio-row .name { flex: 1; font-size: 13px; color: var(--text2); }
-.medio-row .amt { font-size: 13px; font-weight: 600; color: var(--text); }
-.medio-row .pct { font-size: 12px; color: var(--text3); width: 46px; text-align: right; }
+.medio-row .name { flex: 1; font-family: var(--font-body); font-size: 13px; color: var(--text2); }
+.medio-row .amt { font-family: var(--font-mono); font-variant-numeric: tabular-nums; font-size: 13px; font-weight: 600; color: var(--text); }
+.medio-row .pct { font-family: var(--font-mono); font-size: 12px; color: var(--text3); width: 46px; text-align: right; }
 </style>
 </head>
 <body>
@@ -170,10 +243,10 @@ table.data tfoot td { font-weight: 700; border-top: 2px solid var(--border-s); b
     </div>
   </div>
 
-  <div class="card">
-    <div class="sec-label">Resumen general</div>
+  <div class="card reveal">
+    <h2 class="sec-label">Resumen general</h2>
     <div class="kpi-grid">
-      <div class="kpi">
+      <div class="kpi kpi--hero">
         <div class="lbl">Total recaudado</div>
         <div class="val" id="kpiTotal">—</div>
         <div class="sub2" id="kpiRango">—</div>
@@ -207,14 +280,14 @@ table.data tfoot td { font-weight: 700; border-top: 2px solid var(--border-s); b
     <div style="font-size:11px;color:var(--text3);margin-top:14px;">* Entradas vendidas con service charge (no incluye entradas con valor $0).</div>
   </div>
 
-  <div class="card">
-    <div class="sec-label">Recaudación por mes, por venue</div>
+  <div class="card reveal">
+    <h2 class="sec-label">Recaudación por mes, por venue</h2>
     <div class="venue-chips" id="venueChips"></div>
-    <div class="chart-wrap"><canvas id="chartMesVenue"></canvas></div>
+    <div class="chart-wrap"><canvas id="chartMesVenue" role="img" aria-label="Gráfico de barras apiladas con la recaudación mensual por venue. Los mismos datos están en la tabla comparativa debajo."></canvas></div>
   </div>
 
-  <div class="card">
-    <div class="sec-label">Comparativo por venue</div>
+  <div class="card reveal">
+    <h2 class="sec-label">Comparativo por venue</h2>
     <div class="tbl-scroll">
       <table class="data" id="tablaComparativo">
         <thead><tr><th>Venue</th><th>Total recaudado</th><th>Entradas</th><th>Promedio por entrada</th><th>Variación último mes</th></tr></thead>
@@ -223,14 +296,14 @@ table.data tfoot td { font-weight: 700; border-top: 2px solid var(--border-s); b
     </div>
   </div>
 
-  <div class="card">
-    <div class="sec-label">Detalle por venue</div>
+  <div class="card reveal">
+    <h2 class="sec-label">Detalle por venue</h2>
     <div class="field">
       <label for="venueSelect">Elegí un venue</label>
       <select id="venueSelect"></select>
     </div>
     <div class="venue-summary" id="venueSummary"></div>
-    <div class="chart-wrap short" style="margin-bottom:20px;"><canvas id="chartVenueDetail"></canvas></div>
+    <div class="chart-wrap short" style="margin-bottom:20px;"><canvas id="chartVenueDetail" role="img" aria-label="Gráfico de barras con la recaudación mensual del venue seleccionado. Los mismos datos están en la tabla debajo."></canvas></div>
     <div class="tbl-scroll" style="margin-bottom:20px;">
       <table class="data" id="tablaMensualVenue">
         <thead><tr><th>Mes</th><th>Recaudado</th><th>Variación</th></tr></thead>
@@ -246,10 +319,10 @@ table.data tfoot td { font-weight: 700; border-top: 2px solid var(--border-s); b
     </div>
   </div>
 
-  <div class="card">
-    <div class="sec-label">Service charge por medio de pago</div>
+  <div class="card reveal">
+    <h2 class="sec-label">Service charge por medio de pago</h2>
     <div class="medios-grid">
-      <div class="chart-wrap short"><canvas id="chartMedios"></canvas></div>
+      <div class="chart-wrap short"><canvas id="chartMedios" role="img" aria-label="Gráfico de dona con la distribución de recaudación por medio de pago. El detalle está en la lista al costado."></canvas></div>
       <div class="medios-list" id="mediosList"></div>
     </div>
     <div style="font-size:11px;color:var(--text3);margin-top:14px;">* Las ventas con Line ID están agrupadas dentro de "Tarjeta de crédito".</div>
@@ -262,8 +335,8 @@ table.data tfoot td { font-weight: 700; border-top: 2px solid var(--border-s); b
 const EVENTS = [{"Venue": "Baradero", "Evento": "Rock en Baradero", "Función": "2026-04-03 15:00:00", "cargo_total": 202127790.0, "entradas": 8432}, {"Venue": "Club Re", "Evento": "BERSUIT en Club Re", "Función": "2026-04-18 20:00:00", "cargo_total": 4678720.0, "entradas": 666}, {"Venue": "Club Re", "Evento": "CEROUNNO & H DE PERRA en Quilmes", "Función": "2026-04-24 22:00:00", "cargo_total": 676700.0, "entradas": 216}, {"Venue": "Club Re", "Evento": "CRUZANDO EL CHARCO en Club Re", "Función": "2026-05-08 20:00:00", "cargo_total": 4537700.0, "entradas": 524}, {"Venue": "Club Re", "Evento": "DOS MINUTOS en Club Re", "Función": "2026-04-11 20:00:00", "cargo_total": 3237960.0, "entradas": 750}, {"Venue": "Club Re", "Evento": "EMMANUEL HORVILLEUR en Club Re", "Función": "2026-06-12 20:00:00", "cargo_total": 1013720.0, "entradas": 180}, {"Venue": "Club Re", "Evento": "JUANA MOLINA en Club Re", "Función": "2026-06-13 20:00:00", "cargo_total": 1385330.0, "entradas": 243}, {"Venue": "Club Re", "Evento": "KAPANGA en Club Re", "Función": "2026-06-20 20:00:00", "cargo_total": 3494050.0, "entradas": 630}, {"Venue": "Club Re", "Evento": "LOS CAFRES en Club Re", "Función": "2026-05-16 20:00:00", "cargo_total": 4931840.0, "entradas": 734}, {"Venue": "Club Re", "Evento": "LOS ESPÍRITUS en Club Re", "Función": "2026-06-19 20:00:00", "cargo_total": 1452840.0, "entradas": 289}, {"Venue": "Club Re", "Evento": "PITI FERNANDEZ en Club Re", "Función": "2026-03-28 20:00:00", "cargo_total": 2232880.0, "entradas": 347}, {"Venue": "Estadio Atenas", "Evento": "CUARTETO DE NOS en Estadio Atenas LP", "Función": "2026-05-29 21:00:00", "cargo_total": 24515680.0, "entradas": 2597}, {"Venue": "Estadio Atenas", "Evento": "GUASONES en Estadio Atenas LP", "Función": "2026-06-06 21:00:00", "cargo_total": 25238890.0, "entradas": 2978}, {"Venue": "Estadio Malvinas Argentinas", "Evento": "BAD RELIGION en Buenos Aires", "Función": "2026-04-22 18:00:00", "cargo_total": 67421050.0, "entradas": 4239}, {"Venue": "Hipódromo de La Plata", "Evento": "EL KUELGUE en el Hipódromo de La Plata", "Función": "2026-04-18 21:00:00", "cargo_total": 16225680.0, "entradas": 1734}, {"Venue": "Hipódromo de La Plata", "Evento": "KE PERSONAJES en el Hipódromo de La Plata", "Función": "2026-05-09 21:00:00", "cargo_total": 63163480.0, "entradas": 7161}, {"Venue": "Hipódromo de La Plata", "Evento": "LOS GARDELITOS en el Hipódromo de La Plata", "Función": "2026-05-01 21:00:00", "cargo_total": 32655000.0, "entradas": 4665}, {"Venue": "San Miguel", "Evento": "ARDE LA SANGRE en San Miguel", "Función": "2026-06-13 21:00:00", "cargo_total": 729750.0, "entradas": 140}, {"Venue": "San Miguel", "Evento": "BERSUIT en San Miguel", "Función": "2026-03-28 21:00:00", "cargo_total": 3296250.0, "entradas": 474}, {"Venue": "San Miguel", "Evento": "C4 en San Miguel", "Función": "2026-01-24 22:00:00", "cargo_total": 1061250.0, "entradas": 283}, {"Venue": "San Miguel", "Evento": "CEROUNNO & H DE PERRA en San Miguel", "Función": "2026-04-30 22:00:00", "cargo_total": 621900.0, "entradas": 193}, {"Venue": "San Miguel", "Evento": "CTM CLAUDIO TANO MARCIELLO en San Miguel", "Función": "2026-02-21 21:00:00", "cargo_total": 682500.0, "entradas": 192}, {"Venue": "San Miguel", "Evento": "DANCING MOOD en San Miguel", "Función": "2026-03-14 21:00:00", "cargo_total": 736500.0, "entradas": 172}, {"Venue": "San Miguel", "Evento": "DM EXPERIENCE en San Miguel", "Función": "2026-06-26 21:00:00", "cargo_total": 523000.0, "entradas": 124}, {"Venue": "San Miguel", "Evento": "EMMANUEL HORVILLEUR en San Miguel", "Función": "2026-05-15 20:00:00", "cargo_total": 1342500.0, "entradas": 230}, {"Venue": "San Miguel", "Evento": "ERUCA SATIVA en San Miguel", "Función": "2026-04-18 21:00:00", "cargo_total": 1981500.0, "entradas": 406}, {"Venue": "San Miguel", "Evento": "FIESTA MTV 80\" 90\" 00\" en San Miguel", "Función": "2026-02-14 22:00:00", "cargo_total": 207300.0, "entradas": 85}, {"Venue": "San Miguel", "Evento": "FIESTA MTV 80´90´00´ en San Miguel", "Función": "2026-06-06 22:00:00", "cargo_total": 150000.0, "entradas": 77}, {"Venue": "San Miguel", "Evento": "GUSTAVO CORDERA en San Miguel", "Función": "2026-06-19 21:00:00", "cargo_total": 1419000.0, "entradas": 249}, {"Venue": "San Miguel", "Evento": "HOMER EL MERO MERO en San Miguel", "Función": "2026-05-30 20:00:00", "cargo_total": 3250500.0, "entradas": 548}, {"Venue": "San Miguel", "Evento": "JAURIA en San Miguel", "Función": "2026-01-10 20:00:00", "cargo_total": 1116000.0, "entradas": 248}, {"Venue": "San Miguel", "Evento": "KAPANGA en San Miguel", "Función": "2026-04-24 21:00:00", "cargo_total": 3075000.0, "entradas": 550}, {"Venue": "San Miguel", "Evento": "LA BOMBA DE TIEMPO en San Miguel", "Función": "2026-03-21 22:00:00", "cargo_total": 952500.0, "entradas": 254}, {"Venue": "San Miguel", "Evento": "LA GRECIA en San Miguel", "Función": "2026-03-20 21:00:00", "cargo_total": 297000.0, "entradas": 99}, {"Venue": "San Miguel", "Evento": "LEYENDAS DEL ROCK en San Miguel", "Función": "2026-03-27 21:00:00", "cargo_total": 368820.0, "entradas": 137}, {"Venue": "San Miguel", "Evento": "LOS CAFRES en San Miguel", "Función": "2026-03-07 21:00:00", "cargo_total": 3759000.0, "entradas": 550}, {"Venue": "San Miguel", "Evento": "MONOROOTS en San Miguel", "Función": "2026-06-07 20:00:00", "cargo_total": 490500.0, "entradas": 103}, {"Venue": "San Miguel", "Evento": "REY GARUFA en San Miguel", "Función": "2026-04-17 21:00:00", "cargo_total": 1042500.0, "entradas": 240}, {"Venue": "San Miguel", "Evento": "SHAILA en San Miguel", "Función": "2026-05-22 20:00:00", "cargo_total": 798000.0, "entradas": 194}, {"Venue": "San Miguel", "Evento": "SUPERLOGICO en San Miguel", "Función": "2026-01-31 23:45:00", "cargo_total": 1091400.0, "entradas": 366}, {"Venue": "San Miguel", "Evento": "SUPERLOGICO en San Miguel", "Función": "2026-06-20 22:00:00", "cargo_total": 1617300.0, "entradas": 406}, {"Venue": "San Miguel", "Evento": "VINOCIO en San Miguel", "Función": "2026-04-19 20:00:00", "cargo_total": 318750.0, "entradas": 85}, {"Venue": "Teatro Argentino La Plata", "Evento": "ANDRÉS VERNAZZA - PELIGRO NARCISISTAS en Sala Piazzolla - Teatro Argentino LP", "Función": "2026-03-20 20:30:00", "cargo_total": 217944.0, "entradas": 50}, {"Venue": "Teatro Argentino La Plata", "Evento": "CAMERATA BARILOCHE en la Sala Ginastera - Teatro Argentino La Plata", "Función": "2026-04-04 21:00:00", "cargo_total": 4732070.0, "entradas": 645}, {"Venue": "Teatro Argentino La Plata", "Evento": "NANUTRIA - OPINIONES VARIAS - STAND UP COMEDY en Sala Piazzolla - Teatro Argentino LP", "Función": "2026-03-28 20:00:00", "cargo_total": 841480.0, "entradas": 193}, {"Venue": "Teatro Argentino La Plata", "Evento": "RATA BLANCA en la Sala Ginastera - Teatro Argentino La Plata", "Función": "2026-04-05 21:00:00", "cargo_total": 11582650.0, "entradas": 1044}, {"Venue": "Teatro Ópera La Plata", "Evento": "ADRIÁN BERRA en el Teatro Ópera LP", "Función": "2026-06-06 20:00:00", "cargo_total": 756800.0, "entradas": 172}, {"Venue": "Teatro Ópera La Plata", "Evento": "ASSPERA en el Teatro Ópera LP", "Función": "2026-05-02 20:00:00", "cargo_total": 711480.0, "entradas": 196}, {"Venue": "Teatro Ópera La Plata", "Evento": "BANDALOS CHINOS en el Teatro Ópera LP", "Función": "2026-04-10 20:00:00", "cargo_total": 3235700.0, "entradas": 494}, {"Venue": "Teatro Ópera La Plata", "Evento": "BERSUIT VERGARABAT en el Teatro Ópera LP", "Función": "2026-03-20 20:00:00", "cargo_total": 5656620.0, "entradas": 831}, {"Venue": "Teatro Ópera La Plata", "Evento": "BULLDOG en el Teatro Ópera LP", "Función": "2026-03-27 20:00:00", "cargo_total": 896540.0, "entradas": 214}, {"Venue": "Teatro Ópera La Plata", "Evento": "EL ZAR en el Teatro Ópera LP", "Función": "2026-04-24 20:00:00", "cargo_total": 4618950.0, "entradas": 795}, {"Venue": "Teatro Ópera La Plata", "Evento": "EMMANUEL HORVILLEUR en el Teatro Ópera LP", "Función": "2026-05-16 20:00:00", "cargo_total": 1584990.0, "entradas": 279}, {"Venue": "Teatro Ópera La Plata", "Evento": "ESQUINA LIBERTAD en el Teatro Ópera LP", "Función": "2026-03-28 20:00:00", "cargo_total": 647780.0, "entradas": 218}, {"Venue": "Teatro Ópera La Plata", "Evento": "ESTELARES en el Teatro Ópera LP", "Función": "2026-05-09 20:00:00", "cargo_total": 5676500.0, "entradas": 787}, {"Venue": "Teatro Ópera La Plata", "Evento": "ETERNA INOCENCIA + LOQUERO en el Teatro Ópera LP", "Función": "2026-06-18 20:00:00", "cargo_total": 1108976.0, "entradas": 251}, {"Venue": "Teatro Ópera La Plata", "Evento": "FIESTA PLOP en el Teatro Ópera LP", "Función": "2026-06-13 23:55:00", "cargo_total": 999110.0, "entradas": 450}, {"Venue": "Teatro Ópera La Plata", "Evento": "FMS en el Teatro Ópera LP", "Función": "2026-02-13 17:30:00", "cargo_total": 3018960.0, "entradas": 470}, {"Venue": "Teatro Ópera La Plata", "Evento": "GUSTAVO CORDERA en el Teatro Ópera LP", "Función": "2026-06-20 20:00:00", "cargo_total": 1707810.0, "entradas": 303}, {"Venue": "Teatro Ópera La Plata", "Evento": "HOMER EL MERO MERO en el Teatro Ópera LP", "Función": "2026-05-31 20:00:00", "cargo_total": 2563000.0, "entradas": 530}, {"Venue": "Teatro Ópera La Plata", "Evento": "HORCAS en el Teatro Ópera LP", "Función": "2026-05-30 20:00:00", "cargo_total": 989400.0, "entradas": 194}, {"Venue": "Teatro Ópera La Plata", "Evento": "INDIA BOMBAY + EL TERCERO A en el Teatro Ópera LP", "Función": "2026-04-17 21:00:00", "cargo_total": 538780.0, "entradas": 196}, {"Venue": "Teatro Ópera La Plata", "Evento": "JUANA MOLINA en el Teatro Ópera LP", "Función": "2026-05-22 20:00:00", "cargo_total": 1584990.0, "entradas": 279}, {"Venue": "Teatro Ópera La Plata", "Evento": "KAPANGA en el Teatro Ópera LP", "Función": "2026-03-13 20:00:00", "cargo_total": 2150600.0, "entradas": 437}, {"Venue": "Teatro Ópera La Plata", "Evento": "LA PORTUARIA en el Teatro Ópera LP", "Función": "2026-03-07 20:00:00", "cargo_total": 1824660.0, "entradas": 279}, {"Venue": "Teatro Ópera La Plata", "Evento": "LOS CAFRES en el Teatro Ópera LP", "Función": "2026-05-15 20:00:00", "cargo_total": 2948160.0, "entradas": 416}, {"Venue": "Teatro Ópera La Plata", "Evento": "LOS ESPÍRITUS en el Teatro Ópera LP", "Función": "2026-03-21 20:00:00", "cargo_total": 2070760.0, "entradas": 414}, {"Venue": "Teatro Ópera La Plata", "Evento": "LOS TABALEROS en el Teatro Ópera LP", "Función": "2026-04-25 20:00:00", "cargo_total": 1554900.0, "entradas": 365}, {"Venue": "Teatro Ópera La Plata", "Evento": "MASSACRE en el Teatro Ópera LP", "Función": "2026-05-29 20:00:00", "cargo_total": 1531560.0, "entradas": 276}, {"Venue": "Teatro Ópera La Plata", "Evento": "NUESTRO ROMANCE en el Teatro Ópera LP", "Función": "2026-05-01 20:00:00", "cargo_total": 1141500.0, "entradas": 265}, {"Venue": "Teatro Ópera La Plata", "Evento": "OPERA CUMBIA en el Teatro Ópera LP", "Función": "2026-04-11 23:55:00", "cargo_total": 516650.0, "entradas": 212}, {"Venue": "Teatro Ópera La Plata", "Evento": "POLENTA en el Teatro Ópera LP", "Función": "2026-05-23 23:55:00", "cargo_total": 857710.0, "entradas": 424}, {"Venue": "Teatro Ópera La Plata", "Evento": "REY GARUFA en el Teatro Ópera LP", "Función": "2026-04-18 20:00:00", "cargo_total": 2850630.0, "entradas": 658}, {"Venue": "Teatro Ópera La Plata", "Evento": "TURF en el Teatro Ópera La Plata 73 Años Aniversario", "Función": "2026-03-14 20:00:00", "cargo_total": 5133060.0, "entradas": 829}, {"Venue": "Teatro Ópera La Plata", "Evento": "ZOE GOTUSSO en el Teatro Ópera LP", "Función": "2026-05-08 20:00:00", "cargo_total": 5307740.0, "entradas": 668}, {"Venue": "WOS (Gira)", "Evento": "WOS en Bahía Blanca", "Función": "2026-05-01 21:00:00", "cargo_total": 18468000.0, "entradas": 1944}, {"Venue": "WOS (Gira)", "Evento": "WOS en Ituzaingó", "Función": "2026-05-23 21:00:00", "cargo_total": 21445000.0, "entradas": 2150}, {"Venue": "WOS (Gira)", "Evento": "WOS en Junín", "Función": "2026-05-09 21:00:00", "cargo_total": 12530500.0, "entradas": 1319}, {"Venue": "WOS (Gira)", "Evento": "WOS en Lanús - Sábado 20 de junio", "Función": "2026-06-20 21:00:00", "cargo_total": 27729900.0, "entradas": 2855}, {"Venue": "WOS (Gira)", "Evento": "WOS en Lanús - Viernes 19 de junio", "Función": "2026-06-19 21:00:00", "cargo_total": 25213900.0, "entradas": 2610}, {"Venue": "WOS (Gira)", "Evento": "WOS en Villa Ballester", "Función": "2026-06-12 21:00:00", "cargo_total": 43529750.0, "entradas": 4577}];
 const MEDIOS = {"Cuenta DNI": 1387540.0, "Efectivo": 16824930.0, "Mercado Pago": 240259167.2, "Tarjeta de crédito": 413878198.4, "Tarjeta de débito": 48043704.4};
 
-const VENUE_COLORS = ['#2563EB','#F97316','#16A34A','#DC2626','#9333EA','#0D9488','#DB2777','#CA8A04','#0EA5E9','#4B5563'];
-const MEDIO_COLORS = { 'Tarjeta de crédito':'#2563EB', 'Tarjeta de débito':'#0D9488', 'Mercado Pago':'#16A34A', 'Efectivo':'#CA8A04', 'Cuenta DNI':'#9333EA', 'Otro':'#4B5563' };
+const VENUE_COLORS = ['#F2B705','#FF6F59','#4ADE80','#5B9EF3','#C77DFF','#F472B6','#2DD4BF','#FF9F5A','#38BDF8','#94A3B8'];
+const MEDIO_COLORS = { 'Tarjeta de crédito':'#5B9EF3', 'Tarjeta de débito':'#2DD4BF', 'Mercado Pago':'#4ADE80', 'Efectivo':'#F2B705', 'Cuenta DNI':'#C77DFF', 'Otro':'#94A3B8' };
 
 /* ══════════════════════════════ HELPERS ══════════════════════════════ */
 const fmt   = n => '$' + Math.round(n).toLocaleString('es-AR');
@@ -294,6 +367,27 @@ function varBadge(pct, isFirst) {
   const cls = pct > 0.5 ? 'var-up' : pct < -0.5 ? 'var-down' : 'var-flat';
   const arrow = pct > 0.5 ? '▲' : pct < -0.5 ? '▼' : '≈';
   return `<span class="var-badge ${cls}">${arrow} ${pct>=0?'+':''}${pct.toFixed(1)}%</span>`;
+}
+
+/* ══════════════════════════════ Contador animado para KPIs ══════════════════════════════ */
+const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+function animateValue(id, to, formatter, { duration = 900, delay = 0 } = {}) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  if (prefersReducedMotion || !isFinite(to) || to === 0) { el.textContent = formatter(to); return; }
+
+  setTimeout(() => {
+    const start = performance.now();
+    function tick(now) {
+      const p = Math.min((now - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3); // ease-out cubic
+      el.textContent = formatter(to * eased);
+      if (p < 1) requestAnimationFrame(tick);
+      else el.textContent = formatter(to);
+    }
+    requestAnimationFrame(tick);
+  }, delay);
 }
 
 /* ══════════════════════════════ AGREGACIÓN ══════════════════════════════ */
@@ -331,7 +425,7 @@ function buildAggregates(events) {
 /* ══════════════════════════════ RENDER: KPIs ══════════════════════════════ */
 function renderKpis(events) {
   const total = events.reduce((a,e) => a + e.cargo_total, 0);
-  document.getElementById('kpiTotal').textContent = fmt(total);
+  animateValue('kpiTotal', total, fmt, { duration: 1300, delay: 0 });
   document.getElementById('kpiRango').textContent = monthKeys.length ? (monthLabel(monthKeys[0]) + ' – ' + monthLabel(monthKeys[monthKeys.length-1])) : '—';
   document.getElementById('kpiEventos').textContent = fmtN(events.length);
   document.getElementById('kpiVenues').textContent = venueOrder.length + ' venues';
@@ -345,8 +439,12 @@ function renderKpis(events) {
   document.getElementById('kpiMesTopMonto').textContent = topMonth ? fmt(monthTotals[topMonth]) : '—';
 
   const totalEntradas = events.reduce((a,e) => a + e.entradas, 0);
-  document.getElementById('kpiEntradas').textContent = fmtN(totalEntradas);
-  document.getElementById('kpiPromedioEntrada').textContent = totalEntradas ? fmt(total/totalEntradas) : '—';
+  animateValue('kpiEntradas', totalEntradas, fmtN, { duration: 900, delay: 150 });
+  if (totalEntradas) {
+    animateValue('kpiPromedioEntrada', total / totalEntradas, fmt, { duration: 900, delay: 300 });
+  } else {
+    document.getElementById('kpiPromedioEntrada').textContent = '—';
+  }
 }
 
 /* ══════════════════════════════ RENDER: Chips ══════════════════════════════ */
@@ -354,8 +452,10 @@ function renderChips() {
   const wrap = document.getElementById('venueChips');
   wrap.innerHTML = '';
   venueOrder.forEach(v => {
-    const chip = document.createElement('div');
+    const chip = document.createElement('button');
+    chip.type = 'button';
     chip.className = 'vchip' + (hiddenVenues.has(v) ? ' off' : '');
+    chip.setAttribute('aria-pressed', String(!hiddenVenues.has(v)));
     chip.innerHTML = `<span class="sw" style="background:${venueColorMap[v]}"></span>${v}`;
     chip.onclick = () => {
       if (hiddenVenues.has(v)) hiddenVenues.delete(v); else hiddenVenues.add(v);
@@ -390,6 +490,10 @@ function renderMesVenueChart() {
       plugins: {
         legend: { display: false },
         tooltip: {
+          backgroundColor: '#3D3550', borderColor: '#786C90', borderWidth: 1,
+          titleColor: '#F3EFE9', bodyColor: '#BBB2CC', footerColor: '#F2B705',
+          titleFont: { family: 'IBM Plex Sans', weight: '600' }, bodyFont: { family: 'IBM Plex Mono' }, footerFont: { family: 'IBM Plex Mono', weight: '600' },
+          padding: 10, cornerRadius: 8, footerMarginTop: 6,
           callbacks: {
             label: c => ' ' + c.dataset.label + ': ' + fmt(c.raw),
             footer: items => {
@@ -400,8 +504,8 @@ function renderMesVenueChart() {
         }
       },
       scales: {
-        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11, family: 'Inter' }, color: '#98948C' } },
-        y: { stacked: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11, family: 'Inter' }, color: '#98948C', callback: v => fmtCompact(v) } }
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11, family: 'IBM Plex Sans' }, color: '#A7A0B4' } },
+        y: { stacked: true, grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { font: { size: 11, family: 'IBM Plex Mono' }, color: '#A7A0B4', callback: v => fmtCompact(v) } }
       }
     }
   });
@@ -447,10 +551,18 @@ function renderVenueDetail() {
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + fmt(c.raw) } } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: '#3D3550', borderColor: '#786C90', borderWidth: 1,
+          titleColor: '#F3EFE9', bodyColor: '#BBB2CC',
+          bodyFont: { family: 'IBM Plex Mono' }, padding: 10, cornerRadius: 8,
+          callbacks: { label: c => ' ' + fmt(c.raw) }
+        }
+      },
       scales: {
-        x: { grid: { display: false }, ticks: { font: { size: 11, family: 'Inter' }, color: '#98948C' } },
-        y: { grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11, family: 'Inter' }, color: '#98948C', callback: v => fmtCompact(v) } }
+        x: { grid: { display: false }, ticks: { font: { size: 11, family: 'IBM Plex Sans' }, color: '#A7A0B4' } },
+        y: { grid: { color: 'rgba(255,255,255,0.06)' }, ticks: { font: { size: 11, family: 'IBM Plex Mono' }, color: '#A7A0B4', callback: v => fmtCompact(v) } }
       }
     }
   });
@@ -495,22 +607,28 @@ function renderMedios(medios) {
       labels: entries.map(e => e[0]),
       datasets: [{
         data: entries.map(e => Math.round(e[1])),
-        backgroundColor: entries.map(e => MEDIO_COLORS[e[0]] || '#98948C'),
-        borderWidth: 2, borderColor: '#FFFFFF'
+        backgroundColor: entries.map(e => MEDIO_COLORS[e[0]] || '#94A3B8'),
+        borderWidth: 3, borderColor: '#322B3F'
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
+      cutout: '68%',
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: c => ' ' + c.label + ': ' + fmt(c.raw) + ' (' + ((c.raw/total)*100).toFixed(1) + '%)' } }
+        tooltip: {
+          backgroundColor: '#3D3550', borderColor: '#786C90', borderWidth: 1,
+          titleColor: '#F3EFE9', bodyColor: '#BBB2CC',
+          bodyFont: { family: 'IBM Plex Mono' }, padding: 10, cornerRadius: 8,
+          callbacks: { label: c => ' ' + c.label + ': ' + fmt(c.raw) + ' (' + ((c.raw/total)*100).toFixed(1) + '%)' }
+        }
       }
     }
   });
 
   document.getElementById('mediosList').innerHTML = entries.map(([name,val]) => `
     <div class="medio-row">
-      <span class="sw" style="background:${MEDIO_COLORS[name] || '#98948C'}"></span>
+      <span class="sw" style="background:${MEDIO_COLORS[name] || '#94A3B8'}"></span>
       <span class="name">${name}</span>
       <span class="amt">${fmt(val)}</span>
       <span class="pct">${((val/total)*100).toFixed(1)}%</span>
@@ -564,7 +682,26 @@ function renderAll() {
   renderMedios(MEDIOS);
 }
 
+/* ══════════════════════════════ Scroll reveal ══════════════════════════════ */
+function initScrollReveal() {
+  const targets = document.querySelectorAll('.reveal');
+  if (prefersReducedMotion || !('IntersectionObserver' in window)) {
+    targets.forEach(el => el.classList.add('is-visible'));
+    return;
+  }
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -8% 0px' });
+  targets.forEach(el => observer.observe(el));
+}
+
 renderAll();
+initScrollReveal();
 </script>
 </body>
 </html>
