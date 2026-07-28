@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" href="https://livepassargentina-ux.github.io/contracargos.lp/favico.png">
+<title>Dashboard LINE ID — Validación pendiente</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; background: #f5f5f0; color: #1a1a18; padding: 2rem; font-size: 14px; line-height: 1.5; }
+
+  /* Header */
+  .header-block { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+  h1 { font-size: 20px; font-weight: 600; color: #1a1a18; margin-bottom: 4px; }
+  .byline { font-size: 12px; font-style: italic; color: #888; }
+
+  /* Event switcher */
+  .event-switcher { display: flex; gap: 6px; margin-bottom: 1.5rem; }
+  .ev-btn { padding: 9px 22px; border-radius: 8px; font-size: 13px; font-weight: 600; border: 0.5px solid #c8c6be; background: #ebebeb; color: #4a4a47; cursor: pointer; transition: all 0.15s; }
+  .ev-btn:hover { background: #e0dfd8; }
+  .ev-btn.active-es { background: #185FA5; color: #fff; border-color: #185FA5; }
+  .ev-btn.active-im { background: #8B0000; color: #fff; border-color: #8B0000; }
+
+  /* Context note */
+  .context-note { font-size: 12px; color: #6b6b67; margin-bottom: 1.5rem; background: #fff; border: 0.5px solid #d8d6ce; border-radius: 8px; padding: 10px 14px; }
+
+  /* KPIs */
+  .metric-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 1.8rem; }
+  .metric { background: #fff; border: 0.5px solid #d8d6ce; border-radius: 8px; padding: 14px 16px; }
+  .metric .label { font-size: 11px; color: #6b6b67; margin-bottom: 5px; }
+  .metric .val { font-size: 22px; font-weight: 600; color: #1a1a18; }
+  .metric .sub { font-size: 11px; color: #9a9994; margin-top: 3px; }
+  .metric.hl-es { border-left: 3px solid #185FA5; }
+  .metric.hl-im { border-left: 3px solid #8B0000; }
+
+  /* Tabs */
+  .tabs { display: flex; gap: 8px; margin-bottom: 1.2rem; flex-wrap: wrap; }
+  .tab { padding: 7px 18px; border-radius: 8px; font-size: 13px; font-weight: 500; border: 0.5px solid #c8c6be; background: #ebebeb; color: #4a4a47; cursor: pointer; transition: background 0.15s; }
+  .tab:hover { background: #e0dfd8; }
+  .tab.active-es { background: #185FA5; color: #fff; border-color: #185FA5; }
+  .tab.active-im { background: #8B0000; color: #fff; border-color: #8B0000; }
+
+  /* Section title */
+  .section-title { font-size: 11px; font-weight: 600; color: #6b6b67; text-transform: uppercase; letter-spacing:.06em; margin: 1.5rem 0 .75rem; }
+
+  /* Tables */
+  .table-wrap { overflow-x: auto; border-radius: 8px; border: 0.5px solid #d8d6ce; margin-bottom: 1.2rem; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th { font-size: 11px; font-weight: 600; color: #6b6b67; text-align: left; padding: 8px 12px; border-bottom: 1px solid #d8d6ce; background: #f0efea; white-space: nowrap; }
+  tbody td { padding: 7px 12px; color: #1a1a18; }
+  tbody tr:nth-child(odd) td { background: #fff; }
+  tbody tr:nth-child(even) td { background: #f7f6f2; }
+  tbody tr:hover td { background: #e8f0fb; }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  td.bold { font-weight: 600; }
+
+  /* Layout */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; align-items: start; }
+  .chart-box { position: relative; height: 300px; }
+  .chart-box-wide { position: relative; height: 340px; }
+
+  /* Evolution cards */
+  .evol-grid { display: grid; gap: 8px; margin-bottom: 1.5rem; }
+  .evol-grid-6 { grid-template-columns: repeat(6,1fr); }
+  .evol-grid-3 { grid-template-columns: repeat(3,1fr); }
+  .evol-card { background: #fff; border: 0.5px solid #d8d6ce; border-radius: 8px; padding: 10px 12px; text-align: center; }
+  .evol-card .fecha { font-size: 10px; color: #9a9994; margin-bottom: 4px; }
+  .evol-card .num-big { font-size: 18px; font-weight: 600; color: #1a1a18; }
+  .evol-card .delta { font-size: 11px; color: #3B6D11; margin-top: 2px; }
+  .evol-card.first { border-top: 3px solid #d8d6ce; }
+  .evol-card.last-es { border-top: 3px solid #185FA5; }
+  .evol-card.last-im { border-top: 3px solid #8B0000; }
+
+  /* Banks */
+  .bank-wrap { background: #fff; border: 0.5px solid #d8d6ce; border-radius: 8px; padding: 16px; }
+  .bank-row { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 0.5px solid #e8e6de; }
+  .bank-row:last-child { border-bottom: none; }
+  .bank-name { font-size: 13px; color: #1a1a18; flex: 1; }
+  .bank-count { font-size: 13px; font-weight: 600; min-width: 32px; text-align: right; }
+  .bank-pct { font-size: 11px; color: #6b6b67; min-width: 42px; text-align: right; }
+  .bar-bg { background: #d8d6ce; border-radius: 2px; height: 6px; width: 80px; display: inline-block; vertical-align: middle; margin-left: 8px; }
+  .bar-fill-es { height: 6px; border-radius: 2px; background: #185FA5; }
+  .bar-fill-im { height: 6px; border-radius: 2px; background: #8B0000; }
+
+  /* Badges */
+  .pct-badge { display: inline-block; padding: 2px 7px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .pct-green { background: #EAF3DE; color: #3B6D11; }
+  .pct-blue  { background: #DCE6F1; color: #185FA5; }
+  .pct-red   { background: #FCEAEA; color: #8B0000; }
+  .pct-warn  { background: #FDF0D6; color: #854F0B; }
+
+  .nota { font-size: 11px; color: #9a9994; margin-top: 6px; font-style: italic; }
+  .hidden { display: none; }
+
+  @media(max-width:700px){
+    .metric-grid { grid-template-columns: 1fr 1fr; }
+    .two-col { grid-template-columns: 1fr; }
+    .evol-grid-6 { grid-template-columns: repeat(3,1fr); }
+    .evol-grid-3 { grid-template-columns: repeat(3,1fr); }
+  }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header-block">
+  <div>
+    <p style="font-size:11px;font-weight:600;color:#6b6b67;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px">LINE ID — Validación pendiente</p>
+    <h1 id="main-title">Seguimiento de validaciones LINE ID</h1>
+    <p class="byline">Realizado por Alvaro Silva | Livepass &nbsp;·&nbsp; Última actualización: <span id="fecha-act">28/07/2026</span></p>
+  </div>
+  <img src="https://livepassargentina-ux.github.io/contracargos.lp/logolivepass.png" alt="Livepass" style="height:40px;object-fit:contain;flex-shrink:0">
+</div>
+
+<!-- Event switcher -->
+<div class="event-switcher">
+  <button class="ev-btn active-es" id="btn-es" onclick="switchEvent('es')">Ed Sheeran</button>
+  <button class="ev-btn" id="btn-im" onclick="switchEvent('im')">Iron Maiden</button>
+</div>
+
+<!-- Context note -->
+<div class="context-note" id="ctx-es">
+  Cada pestaña agrupa las compras según su fecha de adquisición: <strong>Mayo</strong> incluye todas las compras desde el inicio de la preventa hasta el 31/05/2026; <strong>Junio</strong> y <strong>Julio</strong> corresponden a compras realizadas en esos meses respectivamente. Los carritos e importes reflejan únicamente las compras que aún no completaron el proceso de validación LINE ID.
+</div>
+<div class="context-note hidden" id="ctx-im">
+  Las pestañas corresponden a cada función del evento. Los carritos e importes reflejan únicamente las compras que aún no completaron el proceso de validación LINE ID.
+</div>
+
+<!-- ═══════════════════ ED SHEERAN ═══════════════════ -->
+<div id="ev-es">
+  <div class="metric-grid">
+    <div class="metric hl-es"><div class="label">Carritos sin validar (total)</div><div class="val">525</div><div class="sub">Mayo + Junio + Julio</div></div>
+    <div class="metric"><div class="label">Tickets sin validar</div><div class="val">1.097</div><div class="sub">en los tres períodos</div></div>
+    <div class="metric"><div class="label">Importe pendiente</div><div class="val">$194M</div><div class="sub">$158,9M + $9,3M + $25,8M</div></div>
+    <div class="metric"><div class="label">Períodos relevados</div><div class="val">3</div><div class="sub">Mayo · Junio · Julio</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active-es" onclick="showEsTab('mayo', this)">Mayo</button>
+    <button class="tab" onclick="showEsTab('junio', this)">Junio</button>
+    <button class="tab" onclick="showEsTab('julio', this)">Julio</button>
+    <button class="tab" onclick="showEsTab('evolucion', this)">Evolución</button>
+    <button class="tab" onclick="showEsTab('bancos', this)">Bancos</button>
+  </div>
+
+  <!-- Mayo -->
+  <div id="es-mayo">
+    <p class="section-title">Evolución de carritos — compras hasta el 31/05/2026</p>
+    <div class="evol-grid evol-grid-6">
+      <div class="evol-card first"><div class="fecha">01/06</div><div class="num-big">1.237</div><div class="delta">inicio</div></div>
+      <div class="evol-card"><div class="fecha">19/06</div><div class="num-big">839</div><div class="delta">▼ 32%</div></div>
+      <div class="evol-card"><div class="fecha">29/06</div><div class="num-big">574</div><div class="delta">▼ 54%</div></div>
+      <div class="evol-card"><div class="fecha">03/07</div><div class="num-big">544</div><div class="delta">▼ 56%</div></div>
+      <div class="evol-card"><div class="fecha">14/07</div><div class="num-big">470</div><div class="delta">▼ 62%</div></div>
+      <div class="evol-card last-es"><div class="fecha">28/07</div><div class="num-big">424</div><div class="delta">▼ 66%</div></div>
+    </div>
+    <div class="two-col">
+      <div>
+        <p class="section-title">Detalle por ubicación</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Ubicación</th><th style="text-align:right">Carritos</th><th style="text-align:right">Tickets</th><th style="text-align:right">Importe</th></tr></thead>
+            <tbody>
+              <tr><td>Campo Delantero Derecho</td><td class="num">60</td><td class="num">121</td><td class="num">$33.275.000</td></tr>
+              <tr><td>Campo Delantero Izquierdo</td><td class="num">77</td><td class="num">164</td><td class="num">$45.100.000</td></tr>
+              <tr><td>Campo Trasero</td><td class="num">275</td><td class="num">576</td><td class="num">$72.000.000</td></tr>
+              <tr><td>Plateas (numeradas)</td><td class="num">12</td><td class="num">36</td><td class="num">$8.580.000</td></tr>
+              <tr><td class="bold">Total</td><td class="num bold">424 *</td><td class="num bold">897</td><td class="num bold">$158.955.000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="nota">* La suma de carritos por ubicación puede superar el total por carritos con tickets en más de una ubicación.</p>
+      </div>
+      <div>
+        <p class="section-title">Distribución de tickets</p>
+        <div class="chart-box"><canvas id="es-mayo-donut"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Junio -->
+  <div id="es-junio" class="hidden">
+    <div class="metric-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.2rem">
+      <div class="metric"><div class="label">Primer relevamiento (03/07)</div><div class="val">87</div><div class="sub">carritos únicos</div></div>
+      <div class="metric hl-es"><div class="label">Último corte (28/07)</div><div class="val">22</div><div class="sub">carritos únicos</div></div>
+      <div class="metric"><div class="label">Baja en el período</div><div class="val">75%</div><div class="sub">87 → 22 carritos</div></div>
+    </div>
+    <div class="two-col">
+      <div>
+        <p class="section-title">Detalle por ubicación</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Ubicación</th><th style="text-align:right">Carritos</th><th style="text-align:right">Tickets</th><th style="text-align:right">Importe</th></tr></thead>
+            <tbody>
+              <tr><td>Campo Delantero Derecho</td><td class="num">1</td><td class="num">1</td><td class="num">$275.000</td></tr>
+              <tr><td>Campo Delantero Izquierdo</td><td class="num">10</td><td class="num">20</td><td class="num">$5.500.000</td></tr>
+              <tr><td>Campo Trasero</td><td class="num">12</td><td class="num">28</td><td class="num">$3.500.000</td></tr>
+              <tr><td class="bold">Total</td><td class="num bold">22 *</td><td class="num bold">49</td><td class="num bold">$9.275.000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="nota">* La suma puede superar el total por carritos con tickets en más de una ubicación.</p>
+      </div>
+      <div>
+        <p class="section-title">Evolución junio</p>
+        <div class="chart-box"><canvas id="es-junio-evol"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Julio -->
+  <div id="es-julio" class="hidden">
+    <div class="metric-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:1.2rem">
+      <div class="metric hl-es"><div class="label">Primer relevamiento (28/07)</div><div class="val">79</div><div class="sub">carritos únicos</div></div>
+      <div class="metric"><div class="label">Tickets sin validar</div><div class="val">151</div><div class="sub">en 79 carritos</div></div>
+      <div class="metric"><div class="label">Importe pendiente</div><div class="val">$25.775.000</div><div class="sub">primer corte</div></div>
+    </div>
+    <div class="two-col">
+      <div>
+        <p class="section-title">Detalle por ubicación</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Ubicación</th><th style="text-align:right">Carritos</th><th style="text-align:right">Tickets</th><th style="text-align:right">Importe</th></tr></thead>
+            <tbody>
+              <tr><td>Campo Delantero Derecho</td><td class="num">6</td><td class="num">12</td><td class="num">$3.300.000</td></tr>
+              <tr><td>Campo Delantero Izquierdo</td><td class="num">17</td><td class="num">34</td><td class="num">$9.350.000</td></tr>
+              <tr><td>Campo Trasero</td><td class="num">56</td><td class="num">105</td><td class="num">$13.125.000</td></tr>
+              <tr><td class="bold">Total</td><td class="num bold">79</td><td class="num bold">151</td><td class="num bold">$25.775.000</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <p class="section-title">Distribución de tickets</p>
+        <div class="chart-box"><canvas id="es-julio-donut"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Evolución -->
+  <div id="es-evolucion" class="hidden">
+    <p class="section-title">Evolución acumulada — carritos sin validar (mayo)</p>
+    <div class="chart-box-wide"><canvas id="es-evol-line"></canvas></div>
+    <p class="section-title" style="margin-top:2rem">Comparativa por período</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Período</th><th style="text-align:right">Carritos</th><th style="text-align:right">Tickets</th><th style="text-align:right">Importe pendiente</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td>Hasta 31/05</td><td class="num">424</td><td class="num">897</td><td class="num">$158.955.000</td><td><span class="pct-badge pct-blue">↓ 66% desde inicio</span></td></tr>
+          <tr><td>Junio</td><td class="num">22</td><td class="num">49</td><td class="num">$9.275.000</td><td><span class="pct-badge pct-green">↓ 75% desde inicio</span></td></tr>
+          <tr><td>Julio</td><td class="num">79</td><td class="num">151</td><td class="num">$25.775.000</td><td><span class="pct-badge pct-warn">Primer relevamiento</span></td></tr>
+          <tr><td class="bold">Total</td><td class="num bold">525</td><td class="num bold">1.097</td><td class="num bold">$193.005.000</td><td>—</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Bancos ES -->
+  <div id="es-bancos" class="hidden">
+    <p class="section-title">Distribución por banco emisor — carritos sin validar (mayo)</p>
+    <div class="two-col">
+      <div>
+        <div class="bank-wrap">
+          <div class="bank-row"><div class="bank-name">BBVA Argentina</div><div class="bank-count">217</div><div class="bank-pct">51,2%</div><div class="bar-bg"><div class="bar-fill-es" style="width:100%"></div></div></div>
+          <div class="bank-row"><div class="bank-name">Santander Río</div><div class="bank-count">43</div><div class="bank-pct">10,1%</div><div class="bar-bg"><div class="bar-fill-es" style="width:20%"></div></div></div>
+          <div class="bank-row"><div class="bank-name">Galicia</div><div class="bank-count">33</div><div class="bank-pct">7,8%</div><div class="bar-bg"><div class="bar-fill-es" style="width:15%"></div></div></div>
+          <div class="bank-row"><div class="bank-name">Macro</div><div class="bank-count">26</div><div class="bank-pct">6,1%</div><div class="bar-bg"><div class="bar-fill-es" style="width:12%"></div></div></div>
+          <div class="bank-row"><div class="bank-name">Nación</div><div class="bank-count">17</div><div class="bank-pct">4,0%</div><div class="bar-bg"><div class="bar-fill-es" style="width:8%"></div></div></div>
+          <div class="bank-row"><div class="bank-name">Resto de entidades</div><div class="bank-count">88</div><div class="bank-pct">20,8%</div><div class="bar-bg"><div class="bar-fill-es" style="width:41%;background:#9a9994"></div></div></div>
+        </div>
+        <p class="nota" style="margin-top:8px">BBVA concentra más de la mitad de los casos. Se presume dificultad en la forma en que la entidad informa el código LINE en el resumen del consumo.</p>
+      </div>
+      <div>
+        <p class="section-title">Participación por banco</p>
+        <div class="chart-box"><canvas id="es-bancos-donut"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ IRON MAIDEN ═══════════════════ -->
+<div id="ev-im" class="hidden">
+  <div class="metric-grid">
+    <div class="metric hl-im"><div class="label">Carritos sin validar (total)</div><div class="val">672</div><div class="sub">ambas funciones</div></div>
+    <div class="metric"><div class="label">Tickets sin validar</div><div class="val">1.202</div><div class="sub">en ambas funciones</div></div>
+    <div class="metric"><div class="label">Importe pendiente</div><div class="val">$167M</div><div class="sub">$74,8M + $92,4M</div></div>
+    <div class="metric"><div class="label">Baja acumulada (total)</div><div class="val">15%</div><div class="sub">788 → 672 desde 03/07</div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active-im" onclick="showImTab('20-10', this)">Función 20/10</button>
+    <button class="tab" onclick="showImTab('21-10', this)">Función 21/10</button>
+    <button class="tab" onclick="showImTab('evolucion', this)">Evolución</button>
+    <button class="tab" onclick="showImTab('bancos', this)">Bancos</button>
+  </div>
+
+  <!-- Función 20-10 -->
+  <div id="im-20-10">
+    <p class="section-title">Evolución de carritos — función 20/10/2026</p>
+    <div class="evol-grid evol-grid-3">
+      <div class="evol-card first"><div class="fecha">03/07</div><div class="num-big">345</div><div class="delta">inicio</div></div>
+      <div class="evol-card"><div class="fecha">15/07</div><div class="num-big">261</div><div class="delta">▼ 24%</div></div>
+      <div class="evol-card last-im"><div class="fecha">28/07</div><div class="num-big">257</div><div class="delta">▼ 26%</div></div>
+    </div>
+    <div class="two-col">
+      <div>
+        <p class="section-title">Detalle por ubicación</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Ubicación</th><th style="text-align:right">Carritos</th><th style="text-align:right">Tickets</th><th style="text-align:right">Importe</th></tr></thead>
+            <tbody>
+              <tr><td>Campo con acceso a Platea Baja</td><td class="num">166</td><td class="num">339</td><td class="num">$49.155.000</td></tr>
+              <tr><td>Cabecera</td><td class="num">54</td><td class="num">103</td><td class="num">$9.270.000</td></tr>
+              <tr><td>Plateas (numeradas)</td><td class="num">37</td><td class="num">89</td><td class="num">$16.340.000</td></tr>
+              <tr><td class="bold">Total</td><td class="num bold">257 *</td><td class="num bold">531</td><td class="num bold">$74.765.000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="nota">* La suma puede superar el total por carritos con tickets en más de una ubicación.</p>
+      </div>
+      <div>
+        <p class="section-title">Distribución de tickets</p>
+        <div class="chart-box"><canvas id="im-20-donut"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Función 21-10 -->
+  <div id="im-21-10" class="hidden">
+    <p class="section-title">Evolución de carritos — función 21/10/2026</p>
+    <div class="evol-grid evol-grid-3">
+      <div class="evol-card first"><div class="fecha">03/07</div><div class="num-big">443</div><div class="delta">inicio</div></div>
+      <div class="evol-card"><div class="fecha">15/07</div><div class="num-big">415</div><div class="delta">▼ 6%</div></div>
+      <div class="evol-card last-im"><div class="fecha">28/07</div><div class="num-big">415</div><div class="delta">= sin cambio</div></div>
+    </div>
+    <div class="two-col">
+      <div>
+        <p class="section-title">Detalle por ubicación</p>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Ubicación</th><th style="text-align:right">Carritos</th><th style="text-align:right">Tickets</th><th style="text-align:right">Importe</th></tr></thead>
+            <tbody>
+              <tr><td>Campo con acceso a Platea Baja</td><td class="num">242</td><td class="num">362</td><td class="num">$52.490.000</td></tr>
+              <tr><td>Cabecera</td><td class="num">110</td><td class="num">194</td><td class="num">$17.460.000</td></tr>
+              <tr><td>Plateas (numeradas)</td><td class="num">63</td><td class="num">118</td><td class="num">$18.600.000</td></tr>
+              <tr><td class="bold">Total</td><td class="num bold">415 *</td><td class="num bold">674</td><td class="num bold">$92.370.000</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="nota">* La suma puede superar el total por carritos con tickets en más de una ubicación.</p>
+      </div>
+      <div>
+        <p class="section-title">Distribución de tickets</p>
+        <div class="chart-box"><canvas id="im-21-donut"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Evolución IM -->
+  <div id="im-evolucion" class="hidden">
+    <p class="section-title">Evolución acumulada — total ambas funciones</p>
+    <div class="chart-box-wide"><canvas id="im-evol-line"></canvas></div>
+    <p class="section-title" style="margin-top:2rem">Comparativa por función</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Función</th><th style="text-align:right">Carritos</th><th style="text-align:right">Tickets</th><th style="text-align:right">Importe pendiente</th><th>Estado</th></tr></thead>
+        <tbody>
+          <tr><td>20/10/2026</td><td class="num">257</td><td class="num">531</td><td class="num">$74.765.000</td><td><span class="pct-badge pct-red">↓ 26% desde inicio</span></td></tr>
+          <tr><td>21/10/2026</td><td class="num">415</td><td class="num">674</td><td class="num">$92.370.000</td><td><span class="pct-badge pct-warn">↓ 6% desde inicio</span></td></tr>
+          <tr><td class="bold">Total</td><td class="num bold">672</td><td class="num bold">1.202</td><td class="num bold">$167.135.000</td><td><span class="pct-badge pct-red">↓ 15% desde inicio</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Bancos IM -->
+  <div id="im-bancos" class="hidden">
+    <p class="section-title">Distribución por banco emisor — función 21/10 (único dato disponible)</p>
+    <div class="two-col">
+      <div>
+        <div class="bank-wrap">
+          <div class="bank-row"><div class="bank-name">BBVA Argentina</div><div class="bank-count">79</div><div class="bank-pct">19,0%</div><div class="bar-bg"><div class="bar-fill-im" style="width:100%"></div></div></div>
+          <div class="bank-row"><div class="bank-name">Prov. Buenos Aires</div><div class="bank-count">25</div><div class="bank-pct">6,0%</div><div class="bar-bg"><div class="bar-fill-im" style="width:32%"></div></div></div>
+          <div class="bank-row"><div class="bank-name">Galicia</div><div class="bank-count">23</div><div class="bank-pct">5,5%</div><div class="bar-bg"><div class="bar-fill-im" style="width:29%"></div></div></div>
+          <div class="bank-row"><div class="bank-name">Nación</div><div class="bank-count">22</div><div class="bank-pct">5,3%</div><div class="bar-bg"><div class="bar-fill-im" style="width:28%"></div></div></div>
+          <div class="bank-row"><div class="bank-name">Santander</div><div class="bank-count">19</div><div class="bank-pct">4,6%</div><div class="bar-bg"><div class="bar-fill-im" style="width:24%"></div></div></div>
+          <div class="bank-row"><div class="bank-name">Macro</div><div class="bank-count">12</div><div class="bank-pct">2,9%</div><div class="bar-bg"><div class="bar-fill-im" style="width:15%"></div></div></div>
+          <div class="bank-row"><div class="bank-name">Resto de entidades</div><div class="bank-count">235</div><div class="bank-pct">56,6%</div><div class="bar-bg"><div class="bar-fill-im" style="width:100%;background:#9a9994"></div></div></div>
+        </div>
+        <p class="nota" style="margin-top:8px">* El sistema LINE no registraba el dato de banco emisor para la función del 20/10. Los datos corresponden únicamente a la función del 21/10 (415 carritos).</p>
+      </div>
+      <div>
+        <p class="section-title">Participación por banco — función 21/10</p>
+        <div class="chart-box"><canvas id="im-bancos-donut"></canvas></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Colores ──
+const ES = '#185FA5', ES_L = '#DCE6F1';
+const IM = '#8B0000', IM_L = '#F2DCDB';
+
+// ── Event switcher ──
+function switchEvent(ev) {
+  document.getElementById('ev-es').classList.toggle('hidden', ev !== 'es');
+  document.getElementById('ev-im').classList.toggle('hidden', ev !== 'im');
+  document.getElementById('ctx-es').classList.toggle('hidden', ev !== 'es');
+  document.getElementById('ctx-im').classList.toggle('hidden', ev !== 'im');
+  document.getElementById('btn-es').className = 'ev-btn' + (ev === 'es' ? ' active-es' : '');
+  document.getElementById('btn-im').className = 'ev-btn' + (ev === 'im' ? ' active-im' : '');
+  document.getElementById('fecha-act').textContent = '28/07/2026';
+}
+
+// ── Tab helpers ──
+function showEsTab(name, btn) {
+  ['mayo','junio','julio','evolucion','bancos'].forEach(t => document.getElementById('es-'+t).classList.add('hidden'));
+  document.querySelectorAll('#ev-es .tab').forEach(b => b.classList.remove('active-es'));
+  document.getElementById('es-'+name).classList.remove('hidden');
+  btn.classList.add('active-es');
+}
+function showImTab(name, btn) {
+  ['20-10','21-10','evolucion','bancos'].forEach(t => document.getElementById('im-'+t).classList.add('hidden'));
+  document.querySelectorAll('#ev-im .tab').forEach(b => b.classList.remove('active-im'));
+  document.getElementById('im-'+name).classList.remove('hidden');
+  btn.classList.add('active-im');
+}
+
+// ── Charts ──
+function donut(id, labels, data, color, colors) {
+  new Chart(document.getElementById(id), {
+    type: 'doughnut',
+    data: { labels, datasets: [{ data, backgroundColor: colors || [color, color+'99', color+'66', color+'33'], borderWidth:1, borderColor:'#f5f5f0' }] },
+    options: { cutout:'62%', plugins:{ legend:{ position:'bottom', labels:{ font:{size:11}, padding:10 }}}, responsive:true, maintainAspectRatio:false }
+  });
+}
+function lineChart(id, labels, data, color) {
+  new Chart(document.getElementById(id), {
+    type:'line',
+    data:{ labels, datasets:[{ label:'Carritos sin validar', data, borderColor:color, backgroundColor:color+'15', pointBackgroundColor:color, pointRadius:5, pointHoverRadius:7, tension:0.3, fill:true, borderWidth:2.5 }]},
+    options:{ plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: ctx => ' '+ctx.parsed.y+' carritos' }}},
+      scales:{ y:{ beginAtZero:false, grid:{color:'#e8e6de'}, ticks:{font:{size:11}} }, x:{ grid:{display:false}, ticks:{font:{size:11}} }},
+      responsive:true, maintainAspectRatio:false }
+  });
+}
+function barChart(id, labels, data, color) {
+  new Chart(document.getElementById(id), {
+    type:'bar',
+    data:{ labels, datasets:[{ label:'Carritos', data, backgroundColor:[color+'55', color+'88', color], borderRadius:6, borderSkipped:false }]},
+    options:{ plugins:{legend:{display:false}},
+      scales:{ y:{beginAtZero:true, grid:{color:'#e8e6de'}, ticks:{font:{size:11}}}, x:{grid:{display:false}, ticks:{font:{size:11}}}},
+      responsive:true, maintainAspectRatio:false }
+  });
+}
+
+// Ed Sheeran charts
+donut('es-mayo-donut',
+  ['Campo Trasero','Campo Del. Izq.','Campo Del. Der.','Plateas'],
+  [576,164,121,36], ES,
+  ['#185FA5','#4A90D9','#7BB3E8','#B8D4F0']);
+
+barChart('es-junio-evol', ['03/07','14/07','28/07'], [87,41,22], ES);
+
+donut('es-julio-donut',
+  ['Campo Trasero','Campo Del. Izq.','Campo Del. Der.'],
+  [105,34,12], ES,
+  ['#185FA5','#4A90D9','#7BB3E8']);
+
+lineChart('es-evol-line',
+  ['01/06','19/06','29/06','03/07','14/07','28/07'],
+  [1237,839,574,544,470,424], ES);
+
+donut('es-bancos-donut',
+  ['BBVA Argentina','Santander','Galicia','Macro','Nación','Otros'],
+  [217,43,33,26,17,88], ES,
+  ['#185FA5','#4A90D9','#7BB3E8','#A8C8EC','#C8DFF5','#d8d6ce']);
+
+// Iron Maiden charts
+donut('im-20-donut',
+  ['Campo c/ acceso a Platea Baja','Cabecera','Plateas'],
+  [339,103,89], IM,
+  ['#8B0000','#C04040','#E08080']);
+
+donut('im-21-donut',
+  ['Campo c/ acceso a Platea Baja','Cabecera','Plateas'],
+  [362,194,118], IM,
+  ['#8B0000','#C04040','#E08080']);
+
+lineChart('im-evol-line',
+  ['03/07','15/07','28/07'],
+  [788,676,672], IM);
+
+donut('im-bancos-donut',
+  ['BBVA Argentina','Prov. Bs As','Galicia','Nación','Santander','Macro','Otros'],
+  [79,25,23,22,19,12,235], IM,
+  ['#8B0000','#B03030','#C04040','#D06060','#E08080','#F0A0A0','#d8d6ce']);
+</script>
+</body>
+</html>
