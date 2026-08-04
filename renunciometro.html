@@ -81,8 +81,27 @@ h1{
   text-align:center;
   color:var(--muted);
   font-size:14px;
-  margin:0 0 22px;
+  margin:0 0 10px;
 }
+
+.conn{
+  text-align:center;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:10.5px;
+  color:var(--muted);
+  margin:0 0 20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:6px;
+}
+.conn-dot{
+  width:7px; height:7px; border-radius:50%;
+  background:#f5c542;
+  transition:background 0.3s ease;
+}
+.conn-dot.live{ background:#4ade80; box-shadow:0 0 6px #4ade80; }
+.conn-dot.err{ background:#ef4444; }
 
 /* --- overview strip --- */
 .overview{
@@ -304,6 +323,7 @@ input[type=range]::-moz-range-thumb{
   <div class="card" id="card" style="opacity:0.4;">
     <h1>RENUNCIÓMETRO</h1>
     <p class="subtitle">¿Cómo están las ganas de renunciar hoy?</p>
+    <div class="conn"><span class="conn-dot" id="connDot"></span><span id="connText">conectando...</span></div>
 
     <div class="overview" id="overview"></div>
 
@@ -359,7 +379,7 @@ input[type=range]::-moz-range-thumb{
 
     <div class="slider-block">
       <div class="slider-row">
-        <input type="range" min="0" max="10" step="1" value="0" id="slider">
+        <input type="range" min="0" max="10" step="1" value="0" id="slider" disabled>
         <div class="value-badge" id="valueBadge">0</div>
       </div>
       <div class="meta-row">
@@ -371,7 +391,23 @@ input[type=range]::-moz-range-thumb{
   </div>
 </div>
 
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script>
+const firebaseConfig = {
+  apiKey: "AIzaSyCKz2KOIS2tQ0N3omEqowNi6TaDJcFE4Ds",
+  authDomain: "livepass-argentina.firebaseapp.com",
+  databaseURL: "https://livepass-argentina-default-rtdb.firebaseio.com",
+  projectId: "livepass-argentina",
+  storageBucket: "livepass-argentina.firebasestorage.app",
+  messagingSenderId: "364646211796",
+  appId: "1:364646211796:web:000a30f77d1813b2a79b41"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+const ROOT = 'renunciometro'; // rama propia, no toca el checklist
+
 const PEOPLE = ["Alexis", "Mica", "Vicky", "Camilo", "Alvaro"];
 
 const STATUS_LEVELS = [
@@ -404,15 +440,17 @@ const card = document.getElementById('card');
 const fillRect = document.getElementById('fillRect');
 const bulbFill = document.getElementById('bulbFill');
 const bubblesWrap = document.getElementById('bubbles');
+const connDot = document.getElementById('connDot');
+const connText = document.getElementById('connText');
 
 const TUBE_TOP = 18;
 const TUBE_H = 150;
-const STORAGE_KEY = 'renunciometro:team-state';
 
 let team = {};
 PEOPLE.forEach(p => { team[p] = { value: 0, history: [] }; });
 let activePerson = PEOPLE[0];
 let bubbleInterval = null;
+let firstLoad = true;
 
 function renderOverview(){
   overviewEl.innerHTML = PEOPLE.map(p => {
@@ -454,8 +492,9 @@ function renderActive(){
 
   if(s.value >= 7){ startBubbles(); } else { stopBubbles(); }
 
-  if(s.history.length){
-    const last = s.history[s.history.length-1];
+  const historyArr = s.history ? Object.values(s.history) : [];
+  if(historyArr.length){
+    const last = historyArr[historyArr.length-1];
     lastUpdate.textContent = 'actualizado ' + timeAgo(last.ts);
   } else {
     lastUpdate.textContent = 'sin datos aún';
@@ -477,7 +516,8 @@ function timeAgo(ts){
 
 function renderLog(){
   const s = team[activePerson];
-  const items = [...s.history].reverse().slice(0, 15);
+  const historyArr = s.history ? Object.values(s.history) : [];
+  const items = [...historyArr].sort((a,b) => b.ts - a.ts).slice(0, 15);
   if(!items.length){
     logEl.innerHTML = '<div style="color:var(--muted); font-size:12px; padding:8px 2px;">Todavía no hay movimientos.</div>';
     return;
@@ -505,31 +545,38 @@ function stopBubbles(){
   bubblesWrap.innerHTML = '';
 }
 
-async function load(){
-  try{
-    const res = await window.storage.get(STORAGE_KEY, true);
-    if(res && res.value){
-      const parsed = JSON.parse(res.value);
-      PEOPLE.forEach(p => {
-        if(parsed[p]){
-          team[p] = { value: parsed[p].value ?? 0, history: parsed[p].history ?? [] };
-        }
-      });
+// --- Firebase realtime sync ---
+const dbRef = db.ref(ROOT);
+
+dbRef.on('value', (snapshot) => {
+  const data = snapshot.val() || {};
+  PEOPLE.forEach(p => {
+    if(data[p]){
+      team[p] = {
+        value: data[p].value ?? 0,
+        history: data[p].history ?? {}
+      };
     }
-  }catch(e){
-    // sin datos todavía, quedan los defaults
-  }
+  });
   card.style.opacity = '1';
+  slider.disabled = false;
+  connDot.classList.add('live');
+  connText.textContent = 'sincronizado en vivo';
   renderOverview();
   renderActive();
-}
+  firstLoad = false;
+}, (error) => {
+  connDot.classList.add('err');
+  connText.textContent = 'sin conexión a la base';
+  console.error(error);
+});
 
-async function save(){
-  try{
-    await window.storage.set(STORAGE_KEY, JSON.stringify(team), true);
-  }catch(e){
-    console.error('No se pudo guardar', e);
-  }
+function pushUpdate(person, value){
+  const ts = Date.now();
+  const updates = {};
+  updates[`${ROOT}/${person}/value`] = value;
+  updates[`${ROOT}/${person}/history/${ts}`] = { value, ts };
+  db.ref().update(updates).catch(err => console.error('No se pudo guardar', err));
 }
 
 slider.addEventListener('input', () => {
@@ -549,21 +596,13 @@ slider.addEventListener('input', () => {
 
 slider.addEventListener('change', () => {
   const v = Number(slider.value);
-  const s = team[activePerson];
-  s.value = v;
-  s.history.push({ value: v, ts: Date.now() });
-  if(s.history.length > 50) s.history = s.history.slice(-50);
-  save();
-  renderActive();
-  renderOverview();
+  pushUpdate(activePerson, v);
 });
 
 logToggle.addEventListener('click', () => {
   const open = logEl.classList.toggle('open');
   logToggle.textContent = open ? 'ocultar historial' : 'ver historial';
 });
-
-load();
 </script>
 
 </body>
