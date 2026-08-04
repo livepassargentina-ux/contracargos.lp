@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, nofollow, noarchive, nosnippet, noimageindex">
+<meta name="googlebot" content="noindex, nofollow">
+<title>Panel interno</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@500;600&display=swap');
+
+:root{
+  --bg: #17121f;
+  --bg-card: #211a2c;
+  --bg-card-2: #291f37;
+  --line: #3a2d4a;
+  --text: #f2ece3;
+  --muted: #a99cb8;
+  --cold: #4ade80;
+  --mid: #f5c542;
+  --hot: #ef4444;
+  --hot-glow: #ff5b3d;
+}
+
+*{box-sizing:border-box;}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:
+    radial-gradient(ellipse 700px 400px at 50% -10%, #35204a 0%, transparent 60%),
+    var(--bg);
+  color:var(--text);
+  font-family:'Inter',sans-serif;
+  display:flex;
+  align-items:flex-start;
+  justify-content:center;
+  padding:32px 16px;
+}
+
+.page{
+  width:100%;
+  max-width:460px;
+}
+
+.card{
+  background:linear-gradient(180deg, var(--bg-card-2), var(--bg-card));
+  border:1px solid var(--line);
+  border-radius:24px;
+  padding:28px 26px 26px;
+  box-shadow: 0 30px 60px -20px rgba(0,0,0,0.6);
+  position:relative;
+  overflow:hidden;
+}
+
+.card::before{
+  content:"";
+  position:absolute;
+  top:-60%;
+  left:-20%;
+  width:140%;
+  height:140%;
+  background:radial-gradient(circle, rgba(239,68,68,0.06), transparent 60%);
+  pointer-events:none;
+}
+
+h1{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:25px;
+  font-weight:700;
+  letter-spacing:0.5px;
+  margin:0 0 4px;
+  background:linear-gradient(90deg, var(--mid), var(--hot-glow));
+  -webkit-background-clip:text;
+  background-clip:text;
+  color:transparent;
+  text-align:center;
+}
+
+.subtitle{
+  text-align:center;
+  color:var(--muted);
+  font-size:14px;
+  margin:0 0 22px;
+}
+
+/* --- overview strip --- */
+.overview{
+  display:grid;
+  grid-template-columns:repeat(5, 1fr);
+  gap:8px;
+  margin-bottom:22px;
+}
+.mini{
+  background:rgba(0,0,0,0.2);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:9px 4px 8px;
+  text-align:center;
+  cursor:pointer;
+  transition:border-color 0.2s ease, transform 0.15s ease;
+}
+.mini:hover{ transform:translateY(-1px); }
+.mini.active{
+  border-color:var(--hot-glow);
+  box-shadow:0 0 0 1px var(--hot-glow) inset;
+}
+.mini-name{
+  font-family:'Space Grotesk',sans-serif;
+  font-size:11px;
+  font-weight:600;
+  color:var(--text);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.mini-track{
+  height:5px;
+  border-radius:999px;
+  background:#0e0a15;
+  margin:7px 0 6px;
+  overflow:hidden;
+}
+.mini-fill{
+  height:100%;
+  border-radius:999px;
+  transition:width 0.3s ease, background 0.3s ease;
+}
+.mini-val{
+  font-family:'IBM Plex Mono',monospace;
+  font-size:12px;
+  font-weight:600;
+  color:var(--muted);
+}
+
+/* --- selected person --- */
+.person-name{
+  text-align:center;
+  font-family:'Space Grotesk',sans-serif;
+  font-size:17px;
+  font-weight:600;
+  color:var(--text);
+  margin-bottom:2px;
+}
+.person-sub{
+  text-align:center;
+  color:var(--muted);
+  font-size:12px;
+  margin-bottom:14px;
+}
+
+.gauge-wrap{
+  display:flex;
+  justify-content:center;
+  margin-bottom:8px;
+  position:relative;
+}
+
+#bubbles{
+  position:absolute;
+  left:50%;
+  transform:translateX(-50%);
+  bottom:38px;
+  width:40px;
+  height:120px;
+  pointer-events:none;
+}
+.bubble{
+  position:absolute;
+  bottom:0;
+  width:5px;
+  height:5px;
+  border-radius:50%;
+  background:rgba(255,220,190,0.7);
+  animation: rise 1.6s ease-in infinite;
+  opacity:0;
+}
+@keyframes rise{
+  0%{ transform:translateY(0) scale(0.6); opacity:0; }
+  15%{ opacity:0.9; }
+  90%{ opacity:0.2; }
+  100%{ transform:translateY(-90px) scale(1); opacity:0; }
+}
+
+.status{
+  text-align:center;
+  font-family:'Space Grotesk',sans-serif;
+  font-weight:600;
+  font-size:17px;
+  margin:14px 0 2px;
+  min-height:24px;
+  transition:color 0.3s ease;
+}
+.status-sub{
+  text-align:center;
+  color:var(--muted);
+  font-size:13px;
+  margin:0 0 20px;
+  min-height:16px;
+}
+
+.slider-block{
+  background:rgba(0,0,0,0.18);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:16px 18px 14px;
+}
+
+.slider-row{
+  display:flex;
+  align-items:center;
+  gap:14px;
+}
+
+input[type=range]{
+  -webkit-appearance:none;
+  appearance:none;
+  flex:1;
+  height:8px;
+  border-radius:999px;
+  background: linear-gradient(90deg, var(--cold), var(--mid) 55%, var(--hot) 100%);
+  outline:none;
+}
+input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;
+  appearance:none;
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:#fff;
+  border:3px solid var(--hot-glow);
+  box-shadow:0 0 12px rgba(255,91,61,0.5);
+  cursor:pointer;
+}
+input[type=range]::-moz-range-thumb{
+  width:22px;
+  height:22px;
+  border-radius:50%;
+  background:#fff;
+  border:3px solid var(--hot-glow);
+  cursor:pointer;
+}
+
+.value-badge{
+  font-family:'IBM Plex Mono',monospace;
+  font-weight:600;
+  font-size:15px;
+  background:var(--bg-card-2);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:6px 10px;
+  min-width:34px;
+  text-align:center;
+}
+
+.meta-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  margin-top:14px;
+  font-size:11px;
+  color:var(--muted);
+  font-family:'IBM Plex Mono',monospace;
+}
+
+.log-toggle{
+  background:none;
+  border:none;
+  color:var(--muted);
+  font-family:'Inter',sans-serif;
+  font-size:12px;
+  cursor:pointer;
+  text-decoration:underline;
+  padding:0;
+}
+.log-toggle:hover{ color:var(--text); }
+
+#log{
+  margin-top:14px;
+  max-height:0;
+  overflow:hidden;
+  transition:max-height 0.3s ease;
+}
+#log.open{ max-height:180px; overflow-y:auto; }
+.log-entry{
+  display:flex;
+  justify-content:space-between;
+  font-family:'IBM Plex Mono',monospace;
+  font-size:11.5px;
+  color:var(--muted);
+  padding:5px 2px;
+  border-bottom:1px solid var(--line);
+}
+.log-entry span:first-child{ color:var(--text); }
+
+@media (max-width: 380px){
+  .overview{ grid-template-columns:repeat(3, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="card" id="card" style="opacity:0.4;">
+    <h1>RENUNCIÓMETRO</h1>
+    <p class="subtitle">¿Cómo están las ganas de renunciar hoy?</p>
+
+    <div class="overview" id="overview"></div>
+
+    <div class="person-name" id="personName">—</div>
+    <p class="person-sub">tocá una tarjeta de arriba para cambiar de persona</p>
+
+    <div class="gauge-wrap">
+      <div id="bubbles"></div>
+      <svg id="thermo" width="90" height="230" viewBox="0 0 90 230">
+        <defs>
+          <clipPath id="tubeClip">
+            <rect id="tubeMask" x="33" y="18" width="24" height="150" rx="12"/>
+          </clipPath>
+          <linearGradient id="fillGrad" x1="0" y1="1" x2="0" y2="0">
+            <stop offset="0%" stop-color="#4ade80"/>
+            <stop offset="55%" stop-color="#f5c542"/>
+            <stop offset="100%" stop-color="#ef4444"/>
+          </linearGradient>
+          <filter id="glow">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+
+        <rect x="33" y="18" width="24" height="150" rx="12" fill="#0e0a15" stroke="#3a2d4a" stroke-width="2"/>
+        <circle cx="45" cy="196" r="28" fill="#0e0a15" stroke="#3a2d4a" stroke-width="2"/>
+
+        <g clip-path="url(#tubeClip)">
+          <rect id="fillRect" x="33" y="168" width="24" height="0" fill="url(#fillGrad)"/>
+        </g>
+        <circle id="bulbFill" cx="45" cy="196" r="24" fill="#4ade80" filter="url(#glow)"/>
+
+        <g stroke="#5a4a6e" stroke-width="1.5">
+          <line x1="57" y1="20" x2="63" y2="20"/>
+          <line x1="57" y1="35" x2="61" y2="35"/>
+          <line x1="57" y1="50" x2="63" y2="50"/>
+          <line x1="57" y1="65" x2="61" y2="65"/>
+          <line x1="57" y1="80" x2="63" y2="80"/>
+          <line x1="57" y1="95" x2="61" y2="95"/>
+          <line x1="57" y1="110" x2="63" y2="110"/>
+          <line x1="57" y1="125" x2="61" y2="125"/>
+          <line x1="57" y1="140" x2="63" y2="140"/>
+          <line x1="57" y1="155" x2="61" y2="155"/>
+        </g>
+      </svg>
+    </div>
+
+    <div class="status" id="statusText">—</div>
+    <div class="status-sub" id="statusSub">&nbsp;</div>
+
+    <div class="slider-block">
+      <div class="slider-row">
+        <input type="range" min="0" max="10" step="1" value="0" id="slider">
+        <div class="value-badge" id="valueBadge">0</div>
+      </div>
+      <div class="meta-row">
+        <span id="lastUpdate">sin datos aún</span>
+        <button class="log-toggle" id="logToggle">ver historial</button>
+      </div>
+      <div id="log"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+const PEOPLE = ["Alexis", "Mica", "Vicky", "Camilo", "Alvaro"];
+
+const STATUS_LEVELS = [
+  { max: 1,  label: "Todo tranqui",              sub: "Día normal, sin drama.",              color: "#4ade80" },
+  { max: 2,  label: "De buen humor",              sub: "Café en mano, todo fluye.",           color: "#7ede6a" },
+  { max: 3,  label: "Ligeramente irritado",       sub: "Un par de cositas raras nomás.",      color: "#a8d84f" },
+  { max: 4,  label: "Ojo con eso",                sub: "Empieza a picar un poco.",            color: "#d4c93f" },
+  { max: 5,  label: "Necesito un café ya",        sub: "El día se está poniendo largo.",      color: "#f5c542" },
+  { max: 6,  label: "Tensión en aumento",         sub: "Alguien mandó un mail raro.",         color: "#f0a83d" },
+  { max: 7,  label: "Modo supervivencia",         sub: "Contando los minutos.",               color: "#f0813a" },
+  { max: 8,  label: "Necesito vacaciones YA",     sub: "Se acumularon las papas calientes.",  color: "#f45f38" },
+  { max: 9,  label: "Un mail más y exploto",      sub: "🚨 zona de peligro 🚨",                color: "#f13d2e" },
+  { max: 10, label: "RENUNCIA INMINENTE",         sub: "Alguien que lo abrace, ya.",           color: "#ef4444" },
+];
+
+function getLevel(v){
+  return STATUS_LEVELS.find(l => v <= l.max) || STATUS_LEVELS[STATUS_LEVELS.length-1];
+}
+
+const overviewEl = document.getElementById('overview');
+const slider = document.getElementById('slider');
+const valueBadge = document.getElementById('valueBadge');
+const statusText = document.getElementById('statusText');
+const statusSub = document.getElementById('statusSub');
+const personNameEl = document.getElementById('personName');
+const lastUpdate = document.getElementById('lastUpdate');
+const logToggle = document.getElementById('logToggle');
+const logEl = document.getElementById('log');
+const card = document.getElementById('card');
+const fillRect = document.getElementById('fillRect');
+const bulbFill = document.getElementById('bulbFill');
+const bubblesWrap = document.getElementById('bubbles');
+
+const TUBE_TOP = 18;
+const TUBE_H = 150;
+const STORAGE_KEY = 'renunciometro:team-state';
+
+let team = {};
+PEOPLE.forEach(p => { team[p] = { value: 0, history: [] }; });
+let activePerson = PEOPLE[0];
+let bubbleInterval = null;
+
+function renderOverview(){
+  overviewEl.innerHTML = PEOPLE.map(p => {
+    const s = team[p];
+    const lvl = getLevel(s.value);
+    const activeClass = p === activePerson ? 'active' : '';
+    return `<div class="mini ${activeClass}" data-person="${p}">
+      <div class="mini-name">${p}</div>
+      <div class="mini-track"><div class="mini-fill" style="width:${s.value*10}%; background:${lvl.color};"></div></div>
+      <div class="mini-val">${s.value}</div>
+    </div>`;
+  }).join('');
+
+  overviewEl.querySelectorAll('.mini').forEach(el => {
+    el.addEventListener('click', () => {
+      activePerson = el.dataset.person;
+      renderActive();
+      renderOverview();
+    });
+  });
+}
+
+function renderActive(){
+  const s = team[activePerson];
+  personNameEl.textContent = activePerson;
+  slider.value = s.value;
+  valueBadge.textContent = s.value;
+
+  const lvl = getLevel(s.value);
+  statusText.textContent = lvl.label;
+  statusText.style.color = lvl.color;
+  statusSub.textContent = lvl.sub;
+
+  const pct = s.value / 10;
+  const h = TUBE_H * pct;
+  fillRect.setAttribute('y', TUBE_TOP + (TUBE_H - h));
+  fillRect.setAttribute('height', h);
+  bulbFill.setAttribute('fill', lvl.color);
+
+  if(s.value >= 7){ startBubbles(); } else { stopBubbles(); }
+
+  if(s.history.length){
+    const last = s.history[s.history.length-1];
+    lastUpdate.textContent = 'actualizado ' + timeAgo(last.ts);
+  } else {
+    lastUpdate.textContent = 'sin datos aún';
+  }
+
+  renderLog();
+}
+
+function timeAgo(ts){
+  const diff = Date.now() - ts;
+  const min = Math.floor(diff/60000);
+  if(min < 1) return 'recién';
+  if(min < 60) return 'hace ' + min + ' min';
+  const hr = Math.floor(min/60);
+  if(hr < 24) return 'hace ' + hr + 'h';
+  const d = new Date(ts);
+  return d.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit'}) + ' ' + d.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+}
+
+function renderLog(){
+  const s = team[activePerson];
+  const items = [...s.history].reverse().slice(0, 15);
+  if(!items.length){
+    logEl.innerHTML = '<div style="color:var(--muted); font-size:12px; padding:8px 2px;">Todavía no hay movimientos.</div>';
+    return;
+  }
+  logEl.innerHTML = items.map(h => {
+    const d = new Date(h.ts);
+    const dateStr = d.toLocaleDateString('es-AR', {day:'2-digit', month:'2-digit'}) + ' ' + d.toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'});
+    return `<div class="log-entry"><span>nivel ${h.value}</span><span>${dateStr}</span></div>`;
+  }).join('');
+}
+
+function startBubbles(){
+  if(bubbleInterval) return;
+  bubbleInterval = setInterval(() => {
+    const b = document.createElement('div');
+    b.className = 'bubble';
+    b.style.left = (10 + Math.random()*20) + 'px';
+    b.style.animationDuration = (1.2 + Math.random()*0.8) + 's';
+    bubblesWrap.appendChild(b);
+    setTimeout(() => b.remove(), 2000);
+  }, 350);
+}
+function stopBubbles(){
+  if(bubbleInterval){ clearInterval(bubbleInterval); bubbleInterval = null; }
+  bubblesWrap.innerHTML = '';
+}
+
+async function load(){
+  try{
+    const res = await window.storage.get(STORAGE_KEY, true);
+    if(res && res.value){
+      const parsed = JSON.parse(res.value);
+      PEOPLE.forEach(p => {
+        if(parsed[p]){
+          team[p] = { value: parsed[p].value ?? 0, history: parsed[p].history ?? [] };
+        }
+      });
+    }
+  }catch(e){
+    // sin datos todavía, quedan los defaults
+  }
+  card.style.opacity = '1';
+  renderOverview();
+  renderActive();
+}
+
+async function save(){
+  try{
+    await window.storage.set(STORAGE_KEY, JSON.stringify(team), true);
+  }catch(e){
+    console.error('No se pudo guardar', e);
+  }
+}
+
+slider.addEventListener('input', () => {
+  const v = Number(slider.value);
+  valueBadge.textContent = v;
+  const lvl = getLevel(v);
+  statusText.textContent = lvl.label;
+  statusText.style.color = lvl.color;
+  statusSub.textContent = lvl.sub;
+  const pct = v / 10;
+  const h = TUBE_H * pct;
+  fillRect.setAttribute('y', TUBE_TOP + (TUBE_H - h));
+  fillRect.setAttribute('height', h);
+  bulbFill.setAttribute('fill', lvl.color);
+  if(v >= 7) startBubbles(); else stopBubbles();
+});
+
+slider.addEventListener('change', () => {
+  const v = Number(slider.value);
+  const s = team[activePerson];
+  s.value = v;
+  s.history.push({ value: v, ts: Date.now() });
+  if(s.history.length > 50) s.history = s.history.slice(-50);
+  save();
+  renderActive();
+  renderOverview();
+});
+
+logToggle.addEventListener('click', () => {
+  const open = logEl.classList.toggle('open');
+  logToggle.textContent = open ? 'ocultar historial' : 'ver historial';
+});
+
+load();
+</script>
+
+</body>
+</html>
