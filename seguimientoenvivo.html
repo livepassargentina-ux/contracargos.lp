@@ -162,6 +162,38 @@
   function fmtInt(n){ return n === null || n === undefined ? '—' : Math.round(n).toLocaleString('es-AR'); }
   function fmtMoney(n){ return n === null || n === undefined ? '—' : 'AR$ ' + Math.round(n).toLocaleString('es-AR'); }
 
+  // La capacidad "vendible" real no es la capacidad bruta del evento: hay
+  // que restarle kills (bloqueados) y holds/locks (cortesías no emitidas)
+  // de cada sector. Esto es lo mismo que ya usamos para el % por sector,
+  // sumado a nivel evento. Coincide con el "tickets en preventa" que
+  // reportan por WhatsApp.
+  function sumCapacidadVendible(sectores) {
+    if (!sectores) return null;
+    let total = 0, found = false;
+    Object.values(sectores).forEach((s) => {
+      if (s && s.capacity !== undefined && s.capacity !== null) {
+        total += Math.max(0, (s.capacity || 0) - (s.kills || 0) - (s.locks || 0));
+        found = true;
+      }
+    });
+    return found ? total : null;
+  }
+
+  // "En proceso" (reserved) por sector es más confiable que restar
+  // "Total Tickets Generados" - "Total Tickets Vendidos", porque ese
+  // primer campo no siempre está presente en la vista de gestión.
+  function sumEnProceso(sectores) {
+    if (!sectores) return null;
+    let total = 0, found = false;
+    Object.values(sectores).forEach((s) => {
+      if (s && s.reserved !== undefined && s.reserved !== null) {
+        total += s.reserved;
+        found = true;
+      }
+    });
+    return found ? total : null;
+  }
+
   // Escucha la lista de eventos que ya transmitieron algo
   db.ref(ROOT).on('value', (snap) => {
     const data = snap.val() || {};
@@ -203,11 +235,23 @@
   function renderCurrent(d) {
     if (!d) return;
     document.getElementById('eventTitle').textContent = d.eventName || 'Seguimiento en Vivo';
-    const pct = d.totalTickets && d.totalCapacity ? (100 * d.totalTickets / d.totalCapacity) : null;
 
-    document.getElementById('kpiVendido').textContent = fmtInt(d.totalTickets) + (d.totalCapacity ? ' / ' + fmtInt(d.totalCapacity) : '');
-    document.getElementById('kpiPct').textContent = pct !== null ? pct.toFixed(1) + '% vendido' : '';
-    document.getElementById('kpiProceso').textContent = fmtInt(d.totalSalesCount && d.totalTickets ? (d.totalSalesCount - d.totalTickets) : null);
+    const capacidadVendible = sumCapacidadVendible(d.sectores);
+    const denom = capacidadVendible !== null ? capacidadVendible : d.totalCapacity;
+    const pct = d.totalTickets && denom ? (100 * d.totalTickets / denom) : null;
+
+    document.getElementById('kpiVendido').textContent = fmtInt(d.totalTickets) + (denom ? ' / ' + fmtInt(denom) : '');
+    let pctFoot = pct !== null ? pct.toFixed(1) + '% vendido' : '';
+    if (capacidadVendible !== null && d.totalCapacity && capacidadVendible !== d.totalCapacity) {
+      pctFoot += ` · de ${fmtInt(d.totalCapacity)} totales`;
+    }
+    document.getElementById('kpiPct').textContent = pctFoot;
+
+    const enProcesoSectores = sumEnProceso(d.sectores);
+    const enProceso = enProcesoSectores !== null
+      ? enProcesoSectores
+      : (d.totalSalesCount && d.totalTickets ? (d.totalSalesCount - d.totalTickets) : null);
+    document.getElementById('kpiProceso').textContent = fmtInt(enProceso);
     document.getElementById('kpiMonto').textContent = fmtMoney(d.totalSales);
 
     if (d.fila) {
