@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Livepass · Seguimiento en Vivo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;700;800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+
+<style>
+  :root{
+    --bg: #14121a;
+    --bg-elev: #1c1a24;
+    --bg-elev-2: #241f2e;
+    --line: #322c3d;
+    --text: #f2eef7;
+    --text-dim: #9c93ad;
+    --accent: #7dd3c0;
+    --accent-2: #e8a87c;
+    --danger: #e88c8c;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; background:var(--bg); color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    min-height:100vh;
+  }
+  .wrap{ max-width:1180px; margin:0 auto; padding:32px 20px 80px; }
+
+  header{ display:flex; flex-wrap:wrap; align-items:flex-end; justify-content:space-between; gap:16px; margin-bottom:28px; }
+  h1{
+    font-family:'Bricolage Grotesque', sans-serif; font-weight:800;
+    font-size:clamp(24px,4vw,34px); margin:0; letter-spacing:-0.01em;
+  }
+  .sub{ color:var(--text-dim); font-size:14px; margin-top:4px; }
+
+  select{
+    background:var(--bg-elev); color:var(--text); border:1px solid var(--line);
+    border-radius:10px; padding:10px 14px; font-family:'IBM Plex Mono', monospace;
+    font-size:13px; min-width:220px;
+  }
+
+  .status-pill{
+    display:inline-flex; align-items:center; gap:8px; font-size:12px;
+    color:var(--text-dim); font-family:'IBM Plex Mono', monospace;
+  }
+  .status-pill .dot{ width:8px; height:8px; border-radius:50%; background:#555; }
+  .status-pill.live .dot{ background:var(--accent); box-shadow:0 0 8px var(--accent); }
+
+  .kpis{ display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:14px; margin-bottom:24px; }
+  .kpi{
+    background:var(--bg-elev); border:1px solid var(--line); border-radius:14px; padding:18px 20px;
+  }
+  .kpi .label{ font-size:12px; color:var(--text-dim); text-transform:uppercase; letter-spacing:.05em; }
+  .kpi .value{
+    font-family:'Bricolage Grotesque', sans-serif; font-weight:800;
+    font-size:clamp(22px,3vw,30px); margin-top:6px; color:var(--text);
+  }
+  .kpi .value.accent{ color:var(--accent); }
+  .kpi .value.warn{ color:var(--accent-2); }
+  .kpi .foot{ font-size:12px; color:var(--text-dim); margin-top:4px; }
+
+  .panel{
+    background:var(--bg-elev); border:1px solid var(--line); border-radius:16px;
+    padding:22px 22px 18px; margin-bottom:20px;
+  }
+  .panel h2{
+    font-family:'Bricolage Grotesque', sans-serif; font-size:16px; font-weight:700;
+    margin:0 0 14px; display:flex; align-items:center; justify-content:space-between;
+  }
+  .panel h2 .tag{ font-family:'IBM Plex Mono', monospace; font-size:11px; color:var(--text-dim); font-weight:400; }
+
+  .chart-box{ height:280px; }
+
+  .sector-row{ display:grid; grid-template-columns: 160px 1fr 90px; align-items:center; gap:14px; padding:9px 0; border-bottom:1px solid var(--line); font-size:13px; }
+  .sector-row:last-child{ border-bottom:none; }
+  .sector-name{ font-weight:600; }
+  .bar-track{ height:8px; background:var(--bg-elev-2); border-radius:99px; overflow:hidden; }
+  .bar-fill{ height:100%; background:linear-gradient(90deg, var(--accent), var(--accent-2)); border-radius:99px; }
+  .sector-pct{ text-align:right; font-family:'IBM Plex Mono', monospace; color:var(--text-dim); }
+
+  .fila-grid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  .empty{ color:var(--text-dim); font-size:13px; text-align:center; padding:20px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <h1 id="eventTitle">Seguimiento en Vivo</h1>
+      <div class="sub">Salida a la venta · datos leídos automáticamente desde el sistema de gestión</div>
+    </div>
+    <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
+      <select id="eventSelect"><option>Cargando eventos…</option></select>
+      <div class="status-pill" id="statusPill"><span class="dot"></span><span id="statusText">esperando datos…</span></div>
+    </div>
+  </header>
+
+  <div class="kpis" id="kpis">
+    <div class="kpi"><div class="label">Vendido</div><div class="value accent" id="kpiVendido">—</div><div class="foot" id="kpiPct">—</div></div>
+    <div class="kpi"><div class="label">Tickets en proceso</div><div class="value warn" id="kpiProceso">—</div></div>
+    <div class="kpi"><div class="label">Usuarios esperando ahora</div><div class="value" id="kpiFilaEsperando">—</div><div class="foot">para ingresar a comprar</div></div>
+    <div class="kpi"><div class="label">Total histórico en fila</div><div class="value" id="kpiFilaTotal">—</div><div class="foot">únicos desde que abrió la fila</div></div>
+    <div class="kpi"><div class="label">Recaudación</div><div class="value" id="kpiMonto">—</div></div>
+  </div>
+
+  <div class="panel">
+    <h2>Velocidad de venta <span class="tag" id="ppmTag">— tkts/min</span></h2>
+    <div class="chart-box"><canvas id="velocityChart"></canvas></div>
+  </div>
+
+  <div class="panel" id="filaPanel" style="display:none;">
+    <h2>Evolución de la fila virtual <span class="tag">cada 5 min</span></h2>
+    <div class="chart-box"><canvas id="filaChart"></canvas></div>
+    <div class="foot" style="margin-top:10px;">
+      El "total" empieza a subir desde que sistemas activa la pre-fila (antes de la apertura de venta).
+      "Esperando ahora" solo aparece una vez que la venta abre y el sistema empieza a dejar pasar usuarios.
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Ocupación por sector</h2>
+    <div id="sectorList"><div class="empty">Sin datos de sectores todavía</div></div>
+  </div>
+
+</div>
+
+<script>
+  // ============================================================
+  // CONFIGURACIÓN — mismo proyecto Firebase que la app de checklist
+  // ============================================================
+  const firebaseConfig = {
+    apiKey: "AIzaSyCKz2KOIS2tQ0N3omEqowNi6TaDJcFE4Ds",
+    authDomain: "livepass-argentina.firebaseapp.com",
+    databaseURL: "https://livepass-argentina-default-rtdb.firebaseio.com",
+    projectId: "livepass-argentina",
+    storageBucket: "livepass-argentina.firebasestorage.app",
+    messagingSenderId: "364646211796",
+    appId: "1:364646211796:web:000a30f77d1813b2a79b41"
+  };
+  const ROOT = "live-sales";
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  const eventSelect = document.getElementById('eventSelect');
+  const statusPill = document.getElementById('statusPill');
+  const statusText = document.getElementById('statusText');
+
+  let currentEventRef = null;
+  let timelineRef = null;
+  let chart = null;
+  let filaChart = null;
+  let lastTickTotals = null;
+
+  function fmtInt(n){ return n === null || n === undefined ? '—' : Math.round(n).toLocaleString('es-AR'); }
+  function fmtMoney(n){ return n === null || n === undefined ? '—' : 'AR$ ' + Math.round(n).toLocaleString('es-AR'); }
+
+  // Escucha la lista de eventos que ya transmitieron algo
+  db.ref(ROOT).on('value', (snap) => {
+    const data = snap.val() || {};
+    const slugs = Object.keys(data);
+    eventSelect.innerHTML = '';
+    if (slugs.length === 0) {
+      eventSelect.innerHTML = '<option>Sin eventos activos</option>';
+      return;
+    }
+    slugs.forEach((slug) => {
+      const opt = document.createElement('option');
+      opt.value = slug;
+      const friendlyName = data[slug]?.current?.eventName;
+      opt.textContent = friendlyName ? friendlyName : slug;
+      eventSelect.appendChild(opt);
+    });
+    if (!eventSelect.dataset.userPicked) {
+      watchEvent(slugs[slugs.length - 1]);
+    }
+  });
+
+  eventSelect.addEventListener('change', () => {
+    eventSelect.dataset.userPicked = '1';
+    watchEvent(eventSelect.value);
+  });
+
+  function watchEvent(slug) {
+    if (currentEventRef) currentEventRef.off();
+    if (timelineRef) timelineRef.off();
+    eventSelect.value = slug;
+
+    currentEventRef = db.ref(`${ROOT}/${slug}/current`);
+    currentEventRef.on('value', (snap) => renderCurrent(snap.val()));
+
+    timelineRef = db.ref(`${ROOT}/${slug}/timeline`).limitToLast(200);
+    timelineRef.on('value', (snap) => renderTimeline(snap.val()));
+  }
+
+  function renderCurrent(d) {
+    if (!d) return;
+    document.getElementById('eventTitle').textContent = d.eventName || 'Seguimiento en Vivo';
+    const pct = d.totalTickets && d.totalCapacity ? (100 * d.totalTickets / d.totalCapacity) : null;
+
+    document.getElementById('kpiVendido').textContent = fmtInt(d.totalTickets) + (d.totalCapacity ? ' / ' + fmtInt(d.totalCapacity) : '');
+    document.getElementById('kpiPct').textContent = pct !== null ? pct.toFixed(1) + '% vendido' : '';
+    document.getElementById('kpiProceso').textContent = fmtInt(d.totalSalesCount && d.totalTickets ? (d.totalSalesCount - d.totalTickets) : null);
+    document.getElementById('kpiMonto').textContent = fmtMoney(d.totalSales);
+
+    if (d.fila) {
+      document.getElementById('kpiFilaTotal').textContent = fmtInt(d.fila.total);
+      document.getElementById('kpiFilaEsperando').textContent = fmtInt(d.fila.esperando);
+    } else {
+      document.getElementById('kpiFilaTotal').textContent = '—';
+      document.getElementById('kpiFilaEsperando').textContent = '—';
+    }
+
+    const age = d.lastUpdate ? Math.round((Date.now() - d.lastUpdate) / 1000) : null;
+    if (age !== null && age < 60) {
+      statusPill.classList.add('live');
+      statusText.textContent = `en vivo · actualizado hace ${age}s`;
+    } else {
+      statusPill.classList.remove('live');
+      statusText.textContent = age !== null ? `sin actualizar hace ${Math.round(age/60)} min` : 'esperando datos…';
+    }
+
+    renderSectores(d.sectores);
+  }
+
+  function renderSectores(sectores) {
+    const list = document.getElementById('sectorList');
+    if (!sectores || Object.keys(sectores).length === 0) {
+      list.innerHTML = '<div class="empty">Sin datos de sectores todavía</div>';
+      return;
+    }
+    list.innerHTML = '';
+    Object.values(sectores).forEach((s) => {
+      // "confirmed" = ventas totales del sector (lo que cuenta como vendido).
+      // El 100% no es sobre la capacidad bruta: hay que restarle los kills
+      // (asientos bloqueados, ej. visión restringida) y los holds/locks
+      // (cortesías reservadas no emitidas), porque esos nunca van a la venta.
+      const vendidos = s.confirmed || 0;
+      const capacidadVendible = Math.max(0, (s.capacity || 0) - (s.kills || 0) - (s.locks || 0));
+      const cap = capacidadVendible;
+      const pct = cap > 0 ? Math.min(100, 100 * vendidos / cap) : 0;
+      const row = document.createElement('div');
+      row.className = 'sector-row';
+      row.innerHTML = `
+        <div class="sector-name">${s.nombre}</div>
+        <div class="bar-track"><div class="bar-fill" style="width:${pct}%"></div></div>
+        <div class="sector-pct">${pct.toFixed(0)}%</div>
+      `;
+      list.appendChild(row);
+    });
+  }
+
+  function renderTimeline(obj) {
+    const points = obj ? Object.values(obj).sort((a, b) => a.t - b.t) : [];
+    const labels = points.map(p => new Date(p.t).toLocaleTimeString('es-AR', {hour:'2-digit', minute:'2-digit'}));
+    const values = points.map(p => p.totalTickets);
+
+    // tickets por minuto entre los dos últimos puntos
+    if (points.length >= 2) {
+      const a = points[points.length - 2], b = points[points.length - 1];
+      const minutes = (b.t - a.t) / 60000;
+      const ppm = minutes > 0 ? ((b.totalTickets - a.totalTickets) / minutes) : 0;
+      document.getElementById('ppmTag').textContent = ppm.toFixed(1) + ' tkts/min';
+    }
+
+    const ctx = document.getElementById('velocityChart');
+    if (!chart) {
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Tickets vendidos',
+            data: values,
+            borderColor: '#7dd3c0',
+            backgroundColor: 'rgba(125,211,192,0.12)',
+            fill: true,
+            tension: 0.35,
+            pointRadius: 0,
+            borderWidth: 2,
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { grid: { color: '#322c3d' }, ticks: { color: '#9c93ad', maxTicksLimit: 8 } },
+            y: { grid: { color: '#322c3d' }, ticks: { color: '#9c93ad' } },
+          }
+        }
+      });
+    } else {
+      chart.data.labels = labels;
+      chart.data.datasets[0].data = values;
+      chart.update('none');
+    }
+
+    // Fila virtual: la mostramos si hay CUALQUIER dato de fila, aunque sea
+    // solo "total" (fase de pre-fila, antes de que abra la venta y aparezca
+    // "esperando"). No exigimos que estén los dos campos.
+    const filaEsperando = points.map(p => p.filaEsperando);
+    const filaTotal = points.map(p => p.filaTotal);
+    const hayFila = points.some(p =>
+      (p.filaEsperando !== null && p.filaEsperando !== undefined) ||
+      (p.filaTotal !== null && p.filaTotal !== undefined)
+    );
+    document.getElementById('filaPanel').style.display = hayFila ? '' : 'none';
+
+    if (hayFila) {
+      const fctx = document.getElementById('filaChart');
+      if (!filaChart) {
+        filaChart = new Chart(fctx, {
+          type: 'line',
+          data: {
+            labels,
+            datasets: [
+              {
+                label: 'Esperando ahora',
+                data: filaEsperando,
+                borderColor: '#e8a87c',
+                backgroundColor: 'rgba(232,168,124,0.12)',
+                fill: true, tension: 0.35, pointRadius: 0, borderWidth: 2,
+                yAxisID: 'y',
+              },
+              {
+                label: 'Total histórico',
+                data: filaTotal,
+                borderColor: '#9c93ad',
+                borderDash: [4, 3],
+                fill: false, tension: 0.35, pointRadius: 0, borderWidth: 2,
+                yAxisID: 'y1',
+              },
+            ]
+          },
+          options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: true, labels: { color: '#9c93ad', font: { size: 11 } } } },
+            scales: {
+              x: { grid: { color: '#322c3d' }, ticks: { color: '#9c93ad', maxTicksLimit: 8 } },
+              y: { position: 'left', grid: { color: '#322c3d' }, ticks: { color: '#e8a87c' } },
+              y1: { position: 'right', grid: { display: false }, ticks: { color: '#9c93ad' } },
+            }
+          }
+        });
+      } else {
+        filaChart.data.labels = labels;
+        filaChart.data.datasets[0].data = filaEsperando;
+        filaChart.data.datasets[1].data = filaTotal;
+        filaChart.update('none');
+      }
+    }
+  }
+</script>
+</body>
+</html>
