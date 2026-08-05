@@ -116,7 +116,7 @@
   </div>
 
   <div class="panel" id="filaPanel" style="display:none;">
-    <h2>Evolución de la fila virtual <span class="tag">cada 5 min</span></h2>
+    <h2>Evolución de la fila virtual <span class="tag" id="filaTag">— últimos 5 min</span></h2>
     <div class="chart-box"><canvas id="filaChart"></canvas></div>
     <div class="foot" style="margin-top:10px;">
       El "total" empieza a subir desde que sistemas activa la pre-fila (antes de la apertura de venta).
@@ -358,6 +358,27 @@
     document.getElementById('filaPanel').style.display = hayFila ? '' : 'none';
 
     if (hayFila) {
+      // Cuánto cambió la fila desde el envío anterior (5 min atrás):
+      // negativo = está bajando (bien, se está dejando pasar gente),
+      // positivo = está subiendo (se está formando más rápido de lo que se libera).
+      const conDatos = points.filter(p =>
+        (p.filaEsperando !== null && p.filaEsperando !== undefined) ||
+        (p.filaTotal !== null && p.filaTotal !== undefined)
+      );
+      if (conDatos.length >= 2) {
+        const a = conDatos[conDatos.length - 2], b = conDatos[conDatos.length - 1];
+        const partes = [];
+        if (b.filaEsperando !== null && b.filaEsperando !== undefined && a.filaEsperando !== null && a.filaEsperando !== undefined) {
+          const d = b.filaEsperando - a.filaEsperando;
+          partes.push(`esperando ${d >= 0 ? '+' : ''}${d}`);
+        }
+        if (b.filaTotal !== null && b.filaTotal !== undefined && a.filaTotal !== null && a.filaTotal !== undefined) {
+          const d = b.filaTotal - a.filaTotal;
+          partes.push(`+${d} nuevos en fila`);
+        }
+        document.getElementById('filaTag').textContent = partes.length ? partes.join(' · ') + ' (últimos 5 min)' : '— últimos 5 min';
+      }
+
       const fctx = document.getElementById('filaChart');
       if (!filaChart) {
         filaChart = new Chart(fctx, {
