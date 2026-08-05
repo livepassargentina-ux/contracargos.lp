@@ -92,9 +92,12 @@
 <div class="wrap">
 
   <header>
-    <div>
-      <h1 id="eventTitle">Seguimiento en Vivo</h1>
-      <div class="sub">Salida a la venta · datos leídos automáticamente desde el sistema de gestión</div>
+    <div style="display:flex; align-items:center; gap:14px;">
+      <img src="https://livepassargentina-ux.github.io/contracargos.lp/logolivepass.png" alt="Livepass" style="height:36px; object-fit:contain; flex-shrink:0;">
+      <div>
+        <h1 id="eventTitle">Seguimiento en Vivo</h1>
+        <div class="sub">Salida a la venta · datos leídos automáticamente desde el sistema de gestión</div>
+      </div>
     </div>
     <div style="display:flex; flex-direction:column; align-items:flex-end; gap:8px;">
       <select id="eventSelect"><option>Cargando eventos…</option></select>
@@ -128,6 +131,10 @@
     <h2>Ocupación por sector</h2>
     <div id="sectorList"><div class="empty">Sin datos de sectores todavía</div></div>
   </div>
+
+  <footer style="text-align:center; color:var(--text-dim); font-size:12px; margin-top:30px; padding-top:16px; border-top:1px solid var(--line);">
+    Realizado por Alvaro Silva · Livepass &nbsp;·&nbsp; Última actualización: 04/08/26
+  </footer>
 
 </div>
 
