@@ -132,7 +132,7 @@
   <div class="panel">
     <h2><span>Velocidad de venta</span>
       <span style="display:flex; align-items:center; gap:10px;">
-        <span class="tag" id="ppmTag" title="Calculado entre los últimos dos envíos (cada 2 min), no es el promedio de todo el evento">— tkts/min (últimos 2 min)</span>
+        <span class="tag" id="ppmTag" title="Calculado sobre una ventana móvil de al menos 6 minutos, no es el promedio de todo el evento">— tkts/min</span>
         <button id="exportCsvBtn" style="background:var(--bg-elev-2); color:var(--text); border:1px solid var(--line); border-radius:8px; padding:5px 10px; font-size:11px; font-family:'IBM Plex Mono',monospace; cursor:pointer;">⬇ Exportar CSV</button>
       </span>
     </h2>
@@ -154,7 +154,7 @@
   </div>
 
   <footer style="text-align:center; color:var(--text-dim); font-size:12px; margin-top:30px; padding-top:16px; border-top:1px solid var(--line);">
-    Realizado por Alvaro Silva · Livepass &nbsp;·&nbsp; build 2026-08-05.7
+    Realizado por Alvaro Silva · Livepass &nbsp;·&nbsp; build 2026-08-05.8
   </footer>
 
 </div>
@@ -498,12 +498,23 @@
     });
     const values = points.map(p => p.totalTickets);
 
-    // tickets por minuto entre los dos últimos puntos
+    // tickets por minuto: comparamos contra un punto de al menos ~6 minutos
+    // atrás (no solo el anterior) para suavizar el número. Con bloques de
+    // 2 minutos, comparar solo contra el punto justo anterior es muy
+    // ruidoso — cualquier pausa breve en la venta da 0.0 aunque la
+    // tendencia general esté subiendo.
     if (points.length >= 2) {
-      const a = points[points.length - 2], b = points[points.length - 1];
-      const minutes = (b.t - a.t) / 60000;
-      const ppm = minutes > 0 ? ((b.totalTickets - a.totalTickets) / minutes) : 0;
-      document.getElementById('ppmTag').textContent = ppm.toFixed(1) + ' tkts/min (últimos 2 min)';
+      const VENTANA_MS = 6 * 60 * 1000;
+      const b = points[points.length - 1];
+      let a = points[points.length - 2];
+      for (let i = points.length - 2; i >= 0; i--) {
+        a = points[i];
+        if (b.t - points[i].t >= VENTANA_MS) break;
+      }
+      const minutos = (b.t - a.t) / 60000;
+      const ppm = minutos > 0 ? ((b.totalTickets - a.totalTickets) / minutos) : 0;
+      const ventanaTexto = Math.max(1, Math.round(minutos));
+      document.getElementById('ppmTag').textContent = ppm.toFixed(1) + ` tkts/min (últimos ${ventanaTexto} min)`;
     }
 
     const ctx = document.getElementById('velocityChart');
